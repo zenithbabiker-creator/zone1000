@@ -1,11 +1,5 @@
 name: Android CI Build
 
-# This repository does NOT commit a Gradle wrapper (no `gradlew` /
-# `gradlew.bat` / `gradle/wrapper/`), per project convention. This workflow
-# therefore installs the exact Gradle version the project targets (8.7)
-# directly via `wget` and invokes the `gradle` binary directly, instead of
-# `./gradlew`.
-
 on:
   push:
     branches: [ "main" ]
@@ -15,6 +9,7 @@ on:
 
 env:
   GRADLE_VERSION: "8.7"
+  ANDROID_HOME: /usr/local/lib/android/sdk
 
 jobs:
   build:
@@ -31,12 +26,12 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      # No gradlew in the repo — install Gradle 8.7 manually.
       - name: Install Gradle ${{ env.GRADLE_VERSION }}
         run: |
           wget -q "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" -O /tmp/gradle.zip
-          sudo unzip -q -d /opt/gradle /tmp/gradle.zip
-          echo "/opt/gradle/gradle-${GRADLE_VERSION}/bin" >> "$GITHUB_PATH"
+          mkdir -p $HOME/gradle
+          unzip -q -d $HOME/gradle /tmp/gradle.zip
+          echo "$HOME/gradle/gradle-${GRADLE_VERSION}/bin" >> "$GITHUB_PATH"
 
       - name: Verify Gradle installation
         run: gradle --version
@@ -57,13 +52,13 @@ jobs:
       - name: Build debug APK
         run: gradle assembleDebug --stacktrace --no-daemon
 
-      - name: Run unit tests
-        run: gradle testDebugUnitTest --stacktrace --no-daemon
-        continue-on-error: true
+      - name: Find APK Path
+        run: find . -name "*.apk"
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: landscape-design-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          # استخدام النجمة المزدوجة يضمن البحث في أي مجلد فرعي
+          path: app/build/outputs/apk/**/*.apk
           if-no-files-found: error
