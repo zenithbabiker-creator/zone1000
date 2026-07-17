@@ -1,11 +1,5 @@
 name: Android CI Build
 
-# This repository does NOT commit a Gradle wrapper (no `gradlew` /
-# `gradlew.bat` / `gradle/wrapper/`), per project convention. This workflow
-# therefore installs the exact Gradle version the project targets (8.7)
-# directly via `wget` and invokes the `gradle` binary directly, instead of
-# `./gradlew`.
-
 on:
   push:
     branches: [ "main" ]
@@ -31,15 +25,19 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      # No gradlew in the repo — install Gradle 8.7 manually.
       - name: Install Gradle ${{ env.GRADLE_VERSION }}
         run: |
           wget -q "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" -O /tmp/gradle.zip
           sudo unzip -q -d /opt/gradle /tmp/gradle.zip
           echo "/opt/gradle/gradle-${GRADLE_VERSION}/bin" >> "$GITHUB_PATH"
 
-      - name: Verify Gradle installation
-        run: gradle --version
+      # هذه الخطوة ستبحث عن المجلد الذي يحتوي على ملف الإعدادات وتخزنه في متغير بيئة
+      - name: Find Gradle project root
+        id: find_root
+        run: |
+          ROOT_DIR=$(find . -maxdepth 3 -name "settings.gradle*" -exec dirname {} \;)
+          echo "تم العثور على مشروع Gradle في: $ROOT_DIR"
+          echo "PROJECT_PATH=$ROOT_DIR" >> $GITHUB_ENV
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -55,9 +53,11 @@ jobs:
             gradle-${{ runner.os }}-
 
       - name: Build debug APK
+        working-directory: ${{ env.PROJECT_PATH }}
         run: gradle assembleDebug --stacktrace --no-daemon
 
       - name: Run unit tests
+        working-directory: ${{ env.PROJECT_PATH }}
         run: gradle testDebugUnitTest --stacktrace --no-daemon
         continue-on-error: true
 
@@ -65,5 +65,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: landscape-design-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          # البحث عن ملفات APK في أي مجلد فرعي داخل المسار المكتشف
+          path: ${{ env.PROJECT_PATH }}/**/build/outputs/apk/debug/*.apk
           if-no-files-found: error
