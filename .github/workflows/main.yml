@@ -1,13 +1,32 @@
-name: Diagnostic Build
-on: [push]
+name: Build Landscape App
+
+on:
+  push:
+    branches: [ "main" ]
+
 jobs:
-  debug:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
       
-      - name: Show what is inside the repository
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # نتوجه مباشرة إلى المجلد الذي يحتوي على ملفات المشروع
+      - name: Build with Gradle
+        working-directory: LandscapeDesignApp/LandscapeDesignApp
         run: |
-          echo "محتويات المجلد الحالي:"
-          ls -R
+          gradle wrapper --gradle-version 8.7
+          chmod +x gradlew
+          ./gradlew assembleRelease
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: LandscapeDesignApp/LandscapeDesignApp/app/build/outputs/apk/release/*.apk
