@@ -32,6 +32,7 @@ fun Step4LawnCalculationScreen(
         ) {
             Text(text = stringResource(R.string.select_lawn_type_label), style = MaterialTheme.typography.titleMedium)
 
+            // استخدام ExposedDropdownMenuBox بشكل صحيح
             ExposedDropdownMenuBox(
                 expanded = expanded,
                 onExpandedChange = { expanded = !expanded }
@@ -41,9 +42,10 @@ fun Step4LawnCalculationScreen(
                     value = state.lawnType,
                     onValueChange = {},
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor()
+                        .menuAnchor() // تأكد من استيراد هذا الـ Modifier
                 )
                 ExposedDropdownMenu(
                     expanded = expanded,
@@ -55,7 +57,8 @@ fun Step4LawnCalculationScreen(
                             onClick = {
                                 viewModel.updateLawnType(type)
                                 expanded = false
-                            }
+                            },
+                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                         )
                     }
                 }
@@ -63,7 +66,10 @@ fun Step4LawnCalculationScreen(
 
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = stringResource(R.string.lawn_area_result, state.lawnAreaM2), style = MaterialTheme.typography.headlineSmall)
+                    Text(
+                        text = stringResource(R.string.lawn_area_result, state.lawnAreaM2),
+                        style = MaterialTheme.typography.headlineSmall
+                    )
                 }
             }
 
