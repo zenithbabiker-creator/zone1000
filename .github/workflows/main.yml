@@ -1,67 +1,42 @@
-name: Android CI Build
+name: Full Build Landscape App
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v3
         with:
-          distribution: "temurin"
-          java-version: "17"
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: Inject Build Requirements
+      # 1. تثبيت Gradle وتوليد الـ Wrapper إذا كان مفقوداً
+      - name: Setup Gradle
         run: |
-          # 1. البحث عن جذر المشروع (حيث يوجد build.gradle)
-          PROJECT_ROOT=$(find . -name "build.gradle*" -exec dirname {} \; | head -n 1)
-          echo "PROJECT_PATH=$PROJECT_ROOT" >> $GITHUB_ENV
-          cd "$PROJECT_ROOT"
+          gradle wrapper --gradle-version 8.7
+          chmod +x gradlew
 
-          # 2. حقن (توليد) Gradle Wrapper إذا كان مفقوداً
-          if [ ! -f "gradlew" ]; then
-            echo "Gradle wrapper not found. Injecting..."
-            gradle wrapper --gradle-version 8.7
-            chmod +x gradlew
-          fi
-
-          # 3. حقن الأيقونات الافتراضية (تجاوز خطأ الموارد المفقودة)
-          echo "Injecting dummy app icons..."
-          mkdir -p app/src/main/res/mipmap-mdpi
-          mkdir -p app/src/main/res/mipmap-hdpi
-          mkdir -p app/src/main/res/mipmap-xhdpi
-          mkdir -p app/src/main/res/mipmap-xxhdpi
+      # 2. إنشاء أيقونات افتراضية إذا كانت مجلدات الموارد مفقودة
+      - name: Generate Dummy Icons
+        run: |
           mkdir -p app/src/main/res/mipmap-xxxhdpi
-          
-          # إنشاء ملفات صور فارغة لتجنب خطأ AAPT
-          touch app/src/main/res/mipmap-mdpi/ic_launcher.png
-          touch app/src/main/res/mipmap-hdpi/ic_launcher.png
-          touch app/src/main/res/mipmap-xhdpi/ic_launcher.png
-          touch app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          # إنشاء أيقونة شفافة أو ملونة كحل مؤقت لتجنب خطأ التغليف
           touch app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          touch app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
 
-          # 4. إعداد gradle.properties
-          echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" > gradle.properties
-          echo "android.useAndroidX=true" >> gradle.properties
-
+      # 3. بناء التطبيق
       - name: Build with Gradle
-        run: |
-          cd "${{ env.PROJECT_PATH }}"
-          ./gradlew assembleDebug --stacktrace --no-daemon
+        run: ./gradlew assembleRelease
 
-      - name: Upload debug APK
-        uses: actions/upload-artifact@v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
         with:
-          name: landscape-design-apk
-          path: "**/build/outputs/apk/debug/*.apk"
-          if-no-files-found: error
+          name: app-release
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
