@@ -1,18 +1,14 @@
 package com.example.landscapedesign.ui.components
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
@@ -34,8 +30,7 @@ import com.example.landscapedesign.model.BorderElement
 /**
  * Dialog for entering a precise numeric radius (in meters) when placing a
  * Circle/Arc shape around a major tree. Validates the input is a positive
- * float and disables the confirm button otherwise (prevents crashes on
- * empty/garbage input).
+ * float and disables the confirm button otherwise.
  */
 @Composable
 fun RadiusInputDialog(
@@ -72,8 +67,7 @@ fun RadiusInputDialog(
 
 /**
  * Dialog for entering "trees per meter" density when the user chooses to
- * fill a shape's perimeter (e.g. around a Royal Palm) with a hedge plant
- * like Duranta. Used for section 2 of the spec: density-based tree calc.
+ * fill a shape's perimeter with a hedge plant.
  */
 @Composable
 fun TreesPerMeterDialog(
@@ -114,10 +108,7 @@ fun TreesPerMeterDialog(
 }
 
 /**
- * One row of the 3-Tier Border configuration UI: an OPTIONAL plant-name text
- * field (blank => structural/no-lawn-plant border) plus an independent
- * "plants per linear meter" dropdown that only appears once a plant name has
- * been entered.
+ * One row of the 3-Tier Border configuration UI.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -147,7 +138,6 @@ fun BorderConfigRow(
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Density dropdown only shows once a plant name is present (non-structural border).
         if (text.isNotBlank()) {
             Spacer(modifier = Modifier.height(8.dp))
             ExposedDropdownMenuBox(
@@ -162,7 +152,7 @@ fun BorderConfigRow(
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = densityExpanded) },
                     modifier = Modifier.fillMaxWidth().menuAnchor()
                 )
-                ExposedDropdownMenu(
+                androidx.compose.material3.ExposedDropdownMenu(
                     expanded = densityExpanded,
                     onDismissRequest = { densityExpanded = false }
                 ) {
