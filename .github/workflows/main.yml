@@ -22,30 +22,26 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Build Project
+      - name: Configure Environment and Build
         run: |
-          # العثور على المجلد الذي يحتوي على build.gradle
-          PROJECT_ROOT=$(find . -name "build.gradle*" -exec dirname {} \; | head -n 1)
-          cd "$PROJECT_ROOT"
+          # 1. الانتقال المباشر إلى جذر مشروع الأندرويد الفعلي
+          cd LandscapeDesignApp
           
-          # 1. إعدادات الذاكرة وتفعيل الـ Jetifier والـ AndroidX
-          # هذه الخطوة هي الأهم لحل مشكلة AndroidXDisabledJetifierDisabled
-          echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" >> gradle.properties
+          # 2. إنشاء إعدادات المشروع الافتراضية مع دعم AndroidX والذاكرة المطلوبة للـ Core/SceneView
+          echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" > gradle.properties
           echo "android.useAndroidX=true" >> gradle.properties
-          echo "android.enableJetifier=true" >> gradle.properties
+          echo "android.enableJetifier=false" >> gradle.properties
+
+          # 3. توليد ملف الـ Wrapper بالنسخة 8.7 المطابقة لمتطلبات مشروعك تماماً
+          gradle wrapper --gradle-version 8.7
+          chmod +x gradlew
           
-          # 2. إنشاء Wrapper إذا كان مفقوداً
-          if [ ! -f "gradlew" ]; then
-            gradle wrapper --gradle-version 8.7
-            chmod +x gradlew
-          fi
-          
-          # 3. البناء
+          # 4. تنفيذ أمر البناء النظيف وحقن أدوات المعالجة
           ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: landscape-debug-apk
-          path: "**/build/outputs/apk/debug/*.apk"
+          name: landscape-design-debug-apk
+          path: LandscapeDesignApp/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
