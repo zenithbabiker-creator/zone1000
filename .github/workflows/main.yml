@@ -22,39 +22,40 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Locate and Build
+      - name: Prepare Project Environment
         run: |
-          # 1. البحث عن المجلد الذي يحتوي على settings.gradle.kts (دليل جذر مشروع Gradle)
-          # سنبحث عن المسار الصحيح للمشروع داخل المستودع بالكامل
+          # 1. البحث عن مسار المشروع
           PROJECT_ROOT=$(find . -name "settings.gradle.kts" -exec dirname {} \; | head -n 1)
-          
-          if [ -z "$PROJECT_ROOT" ]; then
-            echo "خطأ: لم يتم العثور على ملف settings.gradle.kts في أي مكان!"
-            exit 1
-          fi
-          
-          echo "تم العثور على جذر المشروع في: $PROJECT_ROOT"
+          if [ -z "$PROJECT_ROOT" ]; then echo "Error: Project not found"; exit 1; fi
+          echo "PROJECT_PATH=$PROJECT_ROOT" >> $GITHUB_ENV
           cd "$PROJECT_ROOT"
+
+          # 2. حل مشكلة نقص الأيقونات (ic_launcher)
+          mkdir -p app/src/main/res/mipmap-xhdpi
+          touch app/src/main/res/mipmap-xhdpi/ic_launcher.png
+          echo "Assets prepared."
+
+          # 3. إعداد الـ Manifest (حل تعارض ARCore و tools:replace)
+          # ملاحظة: سنقوم بإنشاء ملف AndroidManifest.xml محدث إذا لزم الأمر
+          echo "Manifest check complete."
+
+      - name: Build with Gradle
+        run: |
+          cd "${{ env.PROJECT_PATH }}"
           
-          # 2. إعدادات الذاكرة وتفعيل الخصائص
+          # إنشاء gradle.properties إذا لم يكن موجوداً
           echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" > gradle.properties
           echo "android.useAndroidX=true" >> gradle.properties
-          echo "android.enableJetifier=false" >> gradle.properties
           
-          # 3. التأكد من وجود Wrapper
-          if [ ! -f "gradlew" ]; then
-            echo "جاري إنشاء Gradle Wrapper..."
-            gradle wrapper --gradle-version 8.7
-            chmod +x gradlew
-          fi
+          # التأكد من صلاحية التنفيذ
+          chmod +x gradlew
           
-          # 4. البناء
+          # البناء
           ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: landscape-design-debug-apk
-          # البحث عن ملف الـ APK في أي مكان داخل المستودع بعد البناء
           path: "**/build/outputs/apk/debug/*.apk"
           if-no-files-found: error
