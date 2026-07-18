@@ -22,22 +22,25 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Prepare Gradle Wrapper
+      - name: Build Project
         run: |
-          # العثور على المجلد الذي يحتوي على build.gradle (مجلد المشروع الرئيسي)
+          # العثور على المجلد الذي يحتوي على build.gradle
           PROJECT_ROOT=$(find . -name "build.gradle*" -exec dirname {} \; | head -n 1)
           cd "$PROJECT_ROOT"
           
-          # إنشاء ملفات Gradle Wrapper إذا لم تكن موجودة
-          gradle wrapper --gradle-version 8.7
-          
-          # إعطاء صلاحيات التنفيذ
-          chmod +x gradlew
-          
-          # إعدادات الذاكرة
+          # 1. إعدادات الذاكرة وتفعيل الـ Jetifier والـ AndroidX
+          # هذه الخطوة هي الأهم لحل مشكلة AndroidXDisabledJetifierDisabled
           echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" >> gradle.properties
+          echo "android.useAndroidX=true" >> gradle.properties
+          echo "android.enableJetifier=true" >> gradle.properties
           
-          # البناء
+          # 2. إنشاء Wrapper إذا كان مفقوداً
+          if [ ! -f "gradlew" ]; then
+            gradle wrapper --gradle-version 8.7
+            chmod +x gradlew
+          fi
+          
+          # 3. البناء
           ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: Upload debug APK
