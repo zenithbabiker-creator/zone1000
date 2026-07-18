@@ -13,16 +13,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.landscapedesign.ar.ARSessionManager
 import com.example.landscapedesign.ui.Step1AreaCaptureScreen
 import com.example.landscapedesign.ui.Step2SoilVolumeScreen
 import com.example.landscapedesign.ui.Step3DesignStudioScreen
-import com.example.landscapedesign.ui.Step4LawnScreen
+import com.example.landscapedesign.ui.Step4LawnCalculationScreen
 import com.example.landscapedesign.ui.Step5ReportScreen
 import com.example.landscapedesign.ui.theme.LandscapeDesignTheme
 import com.example.landscapedesign.viewmodel.LandscapeViewModel
@@ -37,77 +39,31 @@ object Routes {
 
 private const val TAG = "MainActivity"
 
-/**
- * DEBUGGING NOTE (blank white screen on launch): this onCreate is
- * intentionally verbose with Log.i/Log.e checkpoints, and wraps every risky
- * initialization step (ViewModel creation, setContent's initial composition)
- * in try/catch so that ANY failure is (a) written loudly to Logcat under the
- * "MainActivity" tag and (b) shown to the user as a real error screen
- * instead of a silent blank one. To diagnose on-device, run:
- *
- *   adb logcat -s MainActivity:* LandscapeApp:* LandscapeApp-FATAL:* \
- *               ARSessionManager:* Step1AreaCapture:*
- *
- * then relaunch the app. The very first line should be
- * "LandscapeApp.onCreate() — process starting" (from LandscapeApp.kt); if
- * that line is missing, the process itself is being killed before Android
- * even runs Application.onCreate (check `adb logcat -b crash` and
- * `adb shell dumpsys package com.example.landscapedesign` for install/ABI
- * mismatches — this is common when an OEM's Play Store substitute, e.g.
- * Huawei AppGallery, installs the wrong CPU-architecture APK from a split).
- */
 class MainActivity : ComponentActivity() {
 
-    // Shared across every step/screen in the flow. Created lazily on first
-    // access — the log line below confirms exactly when that happens.
     private val viewModel: LandscapeViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.i(TAG, "onCreate() start — savedInstanceState=${savedInstanceState != null}")
+        Log.i(TAG, "onCreate() start")
         super.onCreate(savedInstanceState)
 
-        val vm = try {
-            Log.i(TAG, "Resolving LandscapeViewModel…")
-            viewModel.also { Log.i(TAG, "LandscapeViewModel resolved OK: $it") }
-        } catch (t: Throwable) {
-            Log.e(TAG, "FAILED to resolve LandscapeViewModel", t)
-            null
-        }
-
         try {
-            Log.i(TAG, "Calling setContent() — starting initial Compose composition…")
             setContent {
                 LandscapeDesignTheme {
-                    if (vm == null) {
-                        // ViewModel construction itself failed — show a real
-                        // error instead of leaving the screen blank.
-                        InitErrorScreen(
-                            reason = "تعذر تهيئة نموذج البيانات (LandscapeViewModel). " +
-                                "راجع Logcat بالوسم MainActivity للتفاصيل."
-                        )
-                    } else {
-                        LandscapeNavHost(vm)
-                    }
+                    // إنشاء ARSessionManager مرة واحدة فقط هنا وتمريره للـ NavHost
+                    val arSessionManager = remember { ARSessionManager() }
+                    LandscapeNavHost(viewModel, arSessionManager)
                 }
             }
-            Log.i(TAG, "setContent() returned — initial composition dispatched successfully")
         } catch (t: Throwable) {
-            // Catches synchronous failures during the FIRST composition pass
-            // (e.g. a theme resource that fails to resolve, or a Composable
-            // that throws during its initial call). Recomposition-time
-            // exceptions on later frames are still routed to the global
-            // handler installed in LandscapeApp.kt.
-            Log.e(TAG, "FATAL: setContent() / initial composition threw", t)
+            Log.e(TAG, "FATAL: setContent() failed", t)
             setContent {
-                InitErrorScreen(
-                    reason = "حدث خطأ أثناء تشغيل الواجهة: ${t.javaClass.simpleName}: ${t.message}"
-                )
+                InitErrorScreen(reason = "خطأ في الواجهة: ${t.message}")
             }
         }
     }
 }
 
-/** Minimal, dependency-free fallback screen shown when startup fails, so the user never sees a silent blank screen. */
 @Composable
 private fun InitErrorScreen(reason: String) {
     Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
@@ -119,14 +75,15 @@ private fun InitErrorScreen(reason: String) {
 }
 
 @Composable
-fun LandscapeNavHost(viewModel: LandscapeViewModel) {
+fun LandscapeNavHost(viewModel: LandscapeViewModel, arSessionManager: ARSessionManager) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Routes.STEP1, modifier = Modifier) {
+    NavHost(navController = navController, startDestination = Routes.STEP1) {
         composable(Routes.STEP1) {
             Step1AreaCaptureScreen(
                 viewModel = viewModel,
-                onConfirmed = { navController.navigate(Routes.STEP2) }
+                arSessionManager = arSessionManager,
+                onNext = { navController.navigate(Routes.STEP2) }
             )
         }
         composable(Routes.STEP2) {
@@ -143,7 +100,7 @@ fun LandscapeNavHost(viewModel: LandscapeViewModel) {
             )
         }
         composable(Routes.STEP4) {
-            Step4LawnScreen(
+            Step4LawnCalculationScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
                 onNext = { navController.navigate(Routes.STEP5) }
@@ -152,7 +109,8 @@ fun LandscapeNavHost(viewModel: LandscapeViewModel) {
         composable(Routes.STEP5) {
             Step5ReportScreen(
                 viewModel = viewModel,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onFinish = { /* إنهاء أو إعادة */ }
             )
         }
     }
