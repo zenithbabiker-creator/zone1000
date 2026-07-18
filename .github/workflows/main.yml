@@ -17,20 +17,36 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # نقوم بتوليد الـ wrapper في المجلد الصحيح أولاً
+      # حل مشكلة الأيقونة المفقودة
+      - name: Create Missing Icons
+        working-directory: LandscapeDesignApp/LandscapeDesignApp
+        run: |
+          mkdir -p app/src/main/res/mipmap-mdpi
+          mkdir -p app/src/main/res/mipmap-hdpi
+          mkdir -p app/src/main/res/mipmap-xhdpi
+          mkdir -p app/src/main/res/mipmap-xxhdpi
+          mkdir -p app/src/main/res/mipmap-xxxhdpi
+          # إنشاء أيقونات فارغة لتجنب خطأ الـ AAPT
+          touch app/src/main/res/mipmap-mdpi/ic_launcher.png
+          touch app/src/main/res/mipmap-hdpi/ic_launcher.png
+          touch app/src/main/res/mipmap-xhdpi/ic_launcher.png
+          touch app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          touch app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+
+      # توليد الـ wrapper
       - name: Setup Gradle Wrapper
         working-directory: LandscapeDesignApp/LandscapeDesignApp
         run: |
           gradle wrapper --gradle-version 8.7
 
-      # الآن بعد أن أصبح gradlew موجوداً، نقوم بالبناء
+      # البناء
       - name: Build with Gradle
         working-directory: LandscapeDesignApp/LandscapeDesignApp
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease --stacktrace
 
-      # رفع ملف الـ APK الناتج
+      # رفع الـ APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
