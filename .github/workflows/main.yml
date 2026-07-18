@@ -39,12 +39,12 @@ jobs:
       - name: Configure Gradle and Fix Project
         working-directory: ${{ env.PROJECT_PATH }}
         run: |
-          # 1. إعدادات الذاكرة وتفعيل AndroidX
+          # إعدادات الذاكرة وتفعيل AndroidX
           echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" >> gradle.properties
           echo "android.useAndroidX=true" >> gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
 
-          # 2. إنشاء ملف الموارد وتغطية كافة القيم الناقصة التي تسببت في فشل البناء
+          # إنشاء ملف الموارد مع تصحيح رموز XML الخاصة (مثل & تصبح &amp;)
           mkdir -p app/src/main/res/values
           cat <<EOF > app/src/main/res/values/strings.xml
           <?xml version="1.0" encoding="utf-8"?>
@@ -71,7 +71,7 @@ jobs:
               <string name="btn_next_step">Next</string>
               <string name="btn_ok">OK</string>
               <string name="btn_save_design">Save Design</string>
-              <string name="btn_save_generate">Save & Generate</string>
+              <string name="btn_save_generate">Save &amp; Generate</string>
               <string name="density_per_meter_label">Density/m</string>
               <string name="design_saved_toast">Saved!</string>
               <string name="lawn_density_label">Lawn Density</string>
@@ -109,7 +109,7 @@ jobs:
           </resources>
           EOF
           
-          # 3. تعديل Manifest
+          # تعديل Manifest لإضافة أدوات التعديل (Tools) وتجنب تضارب الإضافات
           MANIFEST_PATH=$(find . -name "AndroidManifest.xml" | grep "/main/")
           sed -i 's|android:name="com.google.ar.core"|android:name="com.google.ar.core" tools:replace="android:value"|g' "$MANIFEST_PATH"
           sed -i 's|<manifest|<manifest xmlns:tools="http://schemas.android.com/tools"|' "$MANIFEST_PATH"
