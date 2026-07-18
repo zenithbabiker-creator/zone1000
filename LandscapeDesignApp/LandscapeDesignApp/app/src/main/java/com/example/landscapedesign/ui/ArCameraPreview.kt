@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext // مهم للحصول على السياق
 import com.example.landscapedesign.ar.ARSessionManager
 import com.google.ar.core.Frame
 import io.github.sceneview.ar.ARSceneView
@@ -14,12 +15,14 @@ import io.github.sceneview.ar.ARSceneView
 fun ArCameraPreview(
     arSessionManager: ARSessionManager,
     onTap: (x: Float, y: Float, frame: Frame?) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier // تم استخدامه بشكل صحيح أدناه
 ) {
+    val context = LocalContext.current // الحصول على السياق إذا احتاجت SceneView
     var latestFrame by remember { mutableStateOf<Frame?>(null) }
 
+    // تطبيق الـ modifier الممرر للدالة على الحاوية الخارجية لضمان التحكم في الحجم والموقع
     Box(modifier = modifier) {
-        // تم حذف planeRenderer لتجنب تعارض المكتبة
+        
         ARSceneView(
             modifier = Modifier.fillMaxSize(),
             onSessionUpdated = { session, frame ->
@@ -29,6 +32,7 @@ fun ArCameraPreview(
             }
         )
 
+        // طبقة التفاعل (Tap Layer)
         Box(
             modifier = Modifier
                 .fillMaxSize()
