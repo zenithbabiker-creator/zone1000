@@ -1,4 +1,42 @@
-- name: Configure Gradle and Fix Project
+name: Android CI Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build debug APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Find Gradle project root
+        id: find_root
+        run: |
+          ROOT_DIR=$(find . -maxdepth 3 -name "build.gradle*" -exec dirname {} \;)
+          echo "PROJECT_PATH=$ROOT_DIR" >> $GITHUB_ENV
+
+      - name: Generate Gradle Wrapper (If missing)
+        working-directory: ${{ env.PROJECT_PATH }}
+        run: |
+          if [ ! -f "gradlew" ]; then
+            gradle wrapper --gradle-version 8.7
+            chmod +x gradlew
+          fi
+
+      - name: Configure Gradle and Fix Project
         working-directory: ${{ env.PROJECT_PATH }}
         run: |
           # 1. إعدادات الذاكرة وتفعيل AndroidX
@@ -6,7 +44,7 @@
           echo "android.useAndroidX=true" >> gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
 
-          # 2. إنشاء ملف الموارد بشكل صحيح وتغطية كافة الموارد المفقودة
+          # 2. إنشاء ملف الموارد وتغطية كافة القيم الناقصة التي تسببت في فشل البناء
           mkdir -p app/src/main/res/values
           cat <<EOF > app/src/main/res/values/strings.xml
           <?xml version="1.0" encoding="utf-8"?>
@@ -17,17 +55,17 @@
               <string name="border_large">Large</string>
               <string name="border_medium">Medium</string>
               <string name="border_small">Small</string>
-              <string name="border_plant_suggestion_large">Large Plant Suggestion</string>
-              <string name="border_plant_suggestion_medium">Medium Plant Suggestion</string>
-              <string name="border_plant_suggestion_small">Small Plant Suggestion</string>
-              <string name="border_summary_planted">Planted Summary</string>
-              <string name="border_summary_structural">Structural Summary</string>
+              <string name="border_plant_suggestion_large">Large Suggestion</string>
+              <string name="border_plant_suggestion_medium">Medium Suggestion</string>
+              <string name="border_plant_suggestion_small">Small Suggestion</string>
+              <string name="border_summary_planted">Planted</string>
+              <string name="border_summary_structural">Structural</string>
               <string name="borders_section_title">Borders</string>
               <string name="btn_back">Back</string>
               <string name="btn_cancel">Cancel</string>
               <string name="btn_capture">Capture</string>
               <string name="btn_clear_points">Clear</string>
-              <string name="btn_confirm_area">Confirm Area</string>
+              <string name="btn_confirm_area">Confirm</string>
               <string name="btn_copy_report">Copy Report</string>
               <string name="btn_live_reset">Reset</string>
               <string name="btn_next_step">Next</string>
@@ -40,32 +78,32 @@
               <string name="mode_live">Live</string>
               <string name="mode_photo">Photo</string>
               <string name="net_lawn_area_label">Net Area</string>
-              <string name="plane_locked_hint">Plane Locked</string>
+              <string name="plane_locked_hint">Locked</string>
               <string name="plant_duranta">Duranta</string>
               <string name="plant_menu_title">Plants</string>
-              <string name="plant_name_field_hint">Plant Name</string>
+              <string name="plant_name_field_hint">Name</string>
               <string name="plant_no_thorn">No Thorn</string>
               <string name="plant_royal_palm">Royal Palm</string>
               <string name="radius_dialog_title">Radius</string>
-              <string name="radius_input_label">Enter Radius</string>
+              <string name="radius_input_label">Radius</string>
               <string name="redo">Redo</string>
-              <string name="reference_area_label">Reference Area</string>
-              <string name="report_copied_toast">Report Copied</string>
+              <string name="reference_area_label">Reference</string>
+              <string name="report_copied_toast">Copied</string>
               <string name="scanning_hint">Scanning...</string>
-              <string name="soil_volume_label">Soil Volume</string>
+              <string name="soil_volume_label">Volume</string>
               <string name="step1_title">Step 1</string>
               <string name="step2_title">Step 2</string>
               <string name="step3_title">Step 3</string>
               <string name="step4_title">Step 4</string>
               <string name="step5_title">Step 5</string>
               <string name="structural_border_flag">Structural</string>
-              <string name="summary_plants_added">Plants Added</string>
+              <string name="summary_plants_added">Added</string>
               <string name="thickness_dropdown_label">Thickness</string>
               <string name="tool_arc">Arc</string>
               <string name="tool_circle">Circle</string>
               <string name="tool_eraser">Eraser</string>
               <string name="tool_polygon">Polygon</string>
-              <string name="total_lawn_plants_label">Total Plants</string>
+              <string name="total_lawn_plants_label">Total</string>
               <string name="trees_per_meter_label">Trees/m</string>
               <string name="undo">Undo</string>
           </resources>
@@ -75,3 +113,14 @@
           MANIFEST_PATH=$(find . -name "AndroidManifest.xml" | grep "/main/")
           sed -i 's|android:name="com.google.ar.core"|android:name="com.google.ar.core" tools:replace="android:value"|g' "$MANIFEST_PATH"
           sed -i 's|<manifest|<manifest xmlns:tools="http://schemas.android.com/tools"|' "$MANIFEST_PATH"
+
+      - name: Build debug APK
+        working-directory: ${{ env.PROJECT_PATH }}
+        run: ./gradlew assembleDebug --stacktrace --no-daemon
+
+      - name: Upload debug APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: landscape-design-debug-apk
+          path: ${{ env.PROJECT_PATH }}/**/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
