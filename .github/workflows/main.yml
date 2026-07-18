@@ -1,4 +1,4 @@
-name: Build Landscape App
+name: Full Build Landscape App
 
 on:
   push:
@@ -12,32 +12,41 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # 1. تثبيت Gradle وتوليد الـ Wrapper إذا كان مفقوداً
-      - name: Setup Gradle
+      # إضافة خطوة لاكتشاف مكان مشروع الـ Gradle الفعلي
+      - name: Find Gradle Project Root
         run: |
-          gradle wrapper --gradle-version 8.7
-          chmod +x gradlew
-
-      # 2. إنشاء أيقونات افتراضية (Dummy) لتجنب أخطاء التغليف
-      - name: Generate Dummy Icons
-        run: |
-          mkdir -p app/src/main/res/mipmap-xxxhdpi
-          # إنشاء ملفات فارغة لتمثيل الأيقونات
-          touch app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-          touch app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
-
-      # 3. بناء التطبيق
+          echo "Scanning for build.gradle files..."
+          find . -name "build.gradle*"
+      
+      # نستخدم 'working-directory' إذا كان الكود في مجلد فرعي
+      # إذا كان الكود في الجذر، هذه الخطوة ستمر بسلام
       - name: Build with Gradle
-        run: ./gradlew assembleRelease
+        run: |
+          if [ -f "build.gradle.kts" ] || [ -f "build.gradle" ]; then
+            chmod +x gradlew || gradle wrapper --gradle-version 8.7
+            ./gradlew assembleRelease
+          else
+            echo "Gradle project files not found in root. Checking subdirectories..."
+            # هنا سنحاول البحث عن المجلد الذي يحتوي على ملف الإعدادات
+            SUB_DIR=$(find . -maxdepth 2 -name "settings.gradle*" -exec dirname {} \;)
+            if [ -n "$SUB_DIR" ]; then
+              cd "$SUB_DIR"
+              chmod +x gradlew || gradle wrapper --gradle-version 8.7
+              ./gradlew assembleRelease
+            else
+              echo "Error: No Gradle project found anywhere!"
+              exit 1
+            fi
+          fi
 
-      # 4. رفع الـ APK باستخدام الإصدار v4 (المطلوب حالياً)
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          # تحديث المسار ليكون ديناميكياً بناءً على مكان البناء
+          path: '**/build/outputs/apk/release/*.apk'
