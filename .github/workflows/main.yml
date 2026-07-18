@@ -2,7 +2,7 @@ name: Build Landscape App
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "*" ]
 
 jobs:
   build:
@@ -17,7 +17,13 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # التعديل موجود هنا: التوجه للمجلد الصحيح والقيام بالبناء مع زيادة الذاكرة والـ stacktrace
+      # نقوم بتوليد الـ wrapper في المجلد الصحيح أولاً
+      - name: Setup Gradle Wrapper
+        working-directory: LandscapeDesignApp/LandscapeDesignApp
+        run: |
+          gradle wrapper --gradle-version 8.7
+
+      # الآن بعد أن أصبح gradlew موجوداً، نقوم بالبناء
       - name: Build with Gradle
         working-directory: LandscapeDesignApp/LandscapeDesignApp
         run: |
