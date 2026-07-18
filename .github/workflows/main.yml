@@ -22,25 +22,27 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Build and Configure
-        working-directory: .
+      - name: Prepare Gradle Wrapper
         run: |
-          # 1. إعدادات الذاكرة
+          # العثور على المجلد الذي يحتوي على build.gradle (مجلد المشروع الرئيسي)
+          PROJECT_ROOT=$(find . -name "build.gradle*" -exec dirname {} \; | head -n 1)
+          cd "$PROJECT_ROOT"
+          
+          # إنشاء ملفات Gradle Wrapper إذا لم تكن موجودة
+          gradle wrapper --gradle-version 8.7
+          
+          # إعطاء صلاحيات التنفيذ
+          chmod +x gradlew
+          
+          # إعدادات الذاكرة
           echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" >> gradle.properties
           
-          # 2. التأكد من وجود الموارد (إذا كانت مفقودة، يتم إنشاؤها لتفادي خطأ Compilation)
-          # هذا السكربت يتحقق من وجود الملفات، وإذا كان الـ Build يفشل بسبب الموارد، 
-          # سيقوم بتوليد ملف strings.xml افتراضي من بنية المجلدات الحالية.
-          find . -name "strings.xml"
-          
-          # 3. التأكد من وجود صلاحيات التنفيذ
-          chmod +x gradlew
-
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace --no-daemon
+          # البناء
+          ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: landscape-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: "**/build/outputs/apk/debug/*.apk"
+          if-no-files-found: error
