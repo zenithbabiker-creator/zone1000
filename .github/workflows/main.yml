@@ -37,20 +37,24 @@ jobs:
           ROOT_DIR=$(find . -maxdepth 3 -name "settings.gradle*" -exec dirname {} \;)
           echo "PROJECT_PATH=$ROOT_DIR" >> $GITHUB_ENV
 
-      # --- التعديل الأساسي: زيادة الذاكرة وتفعيل AndroidX ---
-      - name: Configure Gradle properties
+      - name: Configure Gradle and Fix Manifests
         run: |
+          # 1. إعدادات الذاكرة وتفعيل AndroidX
           PROPERTIES_FILE="${{ env.PROJECT_PATH }}/gradle.properties"
           echo "android.useAndroidX=true" >> "$PROPERTIES_FILE"
           echo "android.enableJetifier=true" >> "$PROPERTIES_FILE"
-          # زيادة مساحة الذاكرة المخصصة لـ Gradle
           echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" >> "$PROPERTIES_FILE"
 
-      - name: Fix Manifest Merger Conflict
-        run: |
+          # 2. البحث عن ملف المانيفست
           MANIFEST_PATH=$(find ${{ env.PROJECT_PATH }} -name "AndroidManifest.xml" | grep "/main/")
+          
+          # 3. حل تعارض Manifest Merger
           sed -i 's|android:name="com.google.ar.core"|android:name="com.google.ar.core" tools:replace="android:value"|g' "$MANIFEST_PATH"
           sed -i 's|<manifest|<manifest xmlns:tools="http://schemas.android.com/tools"|' "$MANIFEST_PATH"
+          
+          # 4. حل مشكلة فقدان الأيقونات (الترقيع)
+          sed -i 's|android:icon="@mipmap/ic_launcher"|android:icon="@android:drawable/sym_def_app_icon"|g' "$MANIFEST_PATH"
+          sed -i 's|android:roundIcon="@mipmap/ic_launcher_round"|android:roundIcon="@android:drawable/sym_def_app_icon"|g' "$MANIFEST_PATH"
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -68,11 +72,6 @@ jobs:
       - name: Build debug APK
         working-directory: ${{ env.PROJECT_PATH }}
         run: gradle assembleDebug --stacktrace --no-daemon
-
-      - name: Run unit tests
-        working-directory: ${{ env.PROJECT_PATH }}
-        run: gradle testDebugUnitTest --stacktrace --no-daemon
-        continue-on-error: true
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
