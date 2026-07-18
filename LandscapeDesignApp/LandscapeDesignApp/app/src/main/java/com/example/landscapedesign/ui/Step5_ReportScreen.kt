@@ -18,11 +18,16 @@ fun Step5ReportScreen(
     onBack: () -> Unit,
     onFinish: () -> Unit
 ) {
+    // التأكد من أن ViewModel يقوم بتوفير الحالة
     val state by viewModel.state.collectAsState()
     val scrollState = rememberScrollState()
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.step5_title)) }) }
+        topBar = { 
+            TopAppBar(
+                title = { Text(stringResource(R.string.step5_title)) }
+            ) 
+        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -32,13 +37,17 @@ fun Step5ReportScreen(
                 .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Card(modifier = Modifier.fillMaxWidth()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = stringResource(R.string.final_report_header),
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = state.generatedReportText,
                         style = MaterialTheme.typography.bodyLarge
@@ -46,7 +55,8 @@ fun Step5ReportScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            // هذا Spacer يدفع الأزرار للأسفل إذا كان التقرير قصيراً
+            Spacer(modifier = Modifier.height(16.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
