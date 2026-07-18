@@ -32,7 +32,6 @@ jobs:
         working-directory: ${{ env.PROJECT_PATH }}
         run: |
           if [ ! -f "gradlew" ]; then
-            echo "Gradle wrapper missing, generating one..."
             gradle wrapper --gradle-version 8.7
             chmod +x gradlew
           fi
@@ -40,25 +39,26 @@ jobs:
       - name: Configure Gradle and Fix Project
         working-directory: ${{ env.PROJECT_PATH }}
         run: |
-          # 1. إعدادات الذاكرة وتفعيل AndroidX
-          echo "android.useAndroidX=true" >> gradle.properties
-          echo "android.enableJetifier=true" >> gradle.properties
+          # 1. إعدادات الذاكرة
           echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" >> gradle.properties
 
-          # 2. حل تعارض Manifest
+          # 2. حل مشكلة الموارد المفقودة (Strings.xml)
+          # هذا السطر ينشئ ملف الموارد إذا كان مفقوداً أو يضيف القيم الناقصة
+          mkdir -p app/src/main/res/values
+          cat <<EOF > app/src/main/res/values/strings.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="app_name">LandscapeDesign</string>
+              <string name="activity_context_error">Error</string>
+          </resources>
+          EOF
+          
+          # 3. حل تعارض Manifest وترقيع الأيقونات
           MANIFEST_PATH=$(find . -name "AndroidManifest.xml" | grep "/main/")
           sed -i 's|android:name="com.google.ar.core"|android:name="com.google.ar.core" tools:replace="android:value"|g' "$MANIFEST_PATH"
           sed -i 's|<manifest|<manifest xmlns:tools="http://schemas.android.com/tools"|' "$MANIFEST_PATH"
-          
-          # 3. ترقيع الأيقونات المفقودة
           sed -i 's|android:icon="@mipmap/ic_launcher"|android:icon="@android:drawable/sym_def_app_icon"|g' "$MANIFEST_PATH"
           sed -i 's|android:roundIcon="@mipmap/ic_launcher_round"|android:roundIcon="@android:drawable/sym_def_app_icon"|g' "$MANIFEST_PATH"
-
-          # 4. التخلص من الموارد المفقودة (حل خطأ string/activity_context_error)
-          # سنقوم بإنشاء قيمة افتراضية لتجنب الفشل
-          RES_VALUES_PATH="app/src/main/res/values/strings.xml"
-          mkdir -p $(dirname $RES_VALUES_PATH)
-          echo '<?xml version="1.0" encoding="utf-8"?><resources><string name="activity_context_error">Error</string></resources>' > $RES_VALUES_PATH
 
       - name: Build debug APK
         working-directory: ${{ env.PROJECT_PATH }}
