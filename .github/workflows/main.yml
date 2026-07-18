@@ -17,21 +17,15 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # حل مشكلة الأيقونة المفقودة
-      - name: Create Missing Icons
+      # تنظيف أي مجلدات أيقونات قد تسبب فشل في البناء
+      - name: Cleanup Resource Icons
         working-directory: LandscapeDesignApp/LandscapeDesignApp
         run: |
-          mkdir -p app/src/main/res/mipmap-mdpi
-          mkdir -p app/src/main/res/mipmap-hdpi
-          mkdir -p app/src/main/res/mipmap-xhdpi
-          mkdir -p app/src/main/res/mipmap-xxhdpi
-          mkdir -p app/src/main/res/mipmap-xxxhdpi
-          # إنشاء أيقونات فارغة لتجنب خطأ الـ AAPT
-          touch app/src/main/res/mipmap-mdpi/ic_launcher.png
-          touch app/src/main/res/mipmap-hdpi/ic_launcher.png
-          touch app/src/main/res/mipmap-xhdpi/ic_launcher.png
-          touch app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-          touch app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          rm -rf app/src/main/res/mipmap-mdpi
+          rm -rf app/src/main/res/mipmap-hdpi
+          rm -rf app/src/main/res/mipmap-xhdpi
+          rm -rf app/src/main/res/mipmap-xxhdpi
+          rm -rf app/src/main/res/mipmap-xxxhdpi
 
       # توليد الـ wrapper
       - name: Setup Gradle Wrapper
@@ -39,12 +33,12 @@ jobs:
         run: |
           gradle wrapper --gradle-version 8.7
 
-      # البناء
+      # البناء مع تنظيف أي ملفات مؤقتة
       - name: Build with Gradle
         working-directory: LandscapeDesignApp/LandscapeDesignApp
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --stacktrace
+          ./gradlew clean assembleRelease --stacktrace
 
       # رفع الـ APK
       - name: Upload APK
