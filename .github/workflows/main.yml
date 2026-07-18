@@ -7,6 +7,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: LandscapeDesignApp/LandscapeDesignApp
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -16,12 +20,16 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          # إضافة الكاش لحل أخطاء التحميل والتزامن
           cache: gradle
 
-      # بدلاً من حذف المجلدات الذي يكسر التطبيق، نقوم بضمان وجود مجلدات صالحة
+      # هنا نقوم بـ "حقن" ملف gradlew إذا لم يكن موجوداً
+      - name: Generate Gradle Wrapper
+        run: |
+          gradle wrapper --gradle-version 8.7
+          chmod +x gradlew
+
+      # التأكد من صحة الموارد قبل البناء
       - name: Prepare Resource Directories
-        working-directory: LandscapeDesignApp/LandscapeDesignApp
         run: |
           mkdir -p app/src/main/res/mipmap-mdpi
           mkdir -p app/src/main/res/mipmap-hdpi
@@ -29,19 +37,11 @@ jobs:
           mkdir -p app/src/main/res/mipmap-xxhdpi
           mkdir -p app/src/main/res/mipmap-xxxhdpi
 
-      # التأكد من صلاحيات التنفيذ قبل أي عملية
-      - name: Grant Execute Permission
-        working-directory: LandscapeDesignApp/LandscapeDesignApp
-        run: chmod +x gradlew
-
-      # البناء مع استخدام flag --no-daemon لتجنب مشاكل الذاكرة في الـ Actions
       - name: Build with Gradle
-        working-directory: LandscapeDesignApp/LandscapeDesignApp
         run: ./gradlew clean assembleRelease --no-daemon --stacktrace
 
-      # رفع الـ APK الناتج
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: LandscapeDesignApp/LandscapeDesignApp/app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/release/*.apk
