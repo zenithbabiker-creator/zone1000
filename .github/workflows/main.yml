@@ -37,19 +37,19 @@ jobs:
           ROOT_DIR=$(find . -maxdepth 3 -name "settings.gradle*" -exec dirname {} \;)
           echo "PROJECT_PATH=$ROOT_DIR" >> $GITHUB_ENV
 
-      - name: Enable AndroidX and Jetifier
+      # --- التعديل الأساسي: زيادة الذاكرة وتفعيل AndroidX ---
+      - name: Configure Gradle properties
         run: |
-          echo "android.useAndroidX=true" >> "${{ env.PROJECT_PATH }}/gradle.properties"
-          echo "android.enableJetifier=true" >> "${{ env.PROJECT_PATH }}/gradle.properties"
+          PROPERTIES_FILE="${{ env.PROJECT_PATH }}/gradle.properties"
+          echo "android.useAndroidX=true" >> "$PROPERTIES_FILE"
+          echo "android.enableJetifier=true" >> "$PROPERTIES_FILE"
+          # زيادة مساحة الذاكرة المخصصة لـ Gradle
+          echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" >> "$PROPERTIES_FILE"
 
-      # --- الحل: إصلاح تعارض الـ Manifest ---
       - name: Fix Manifest Merger Conflict
         run: |
-          # العثور على ملف المانيفست الرئيسي
           MANIFEST_PATH=$(find ${{ env.PROJECT_PATH }} -name "AndroidManifest.xml" | grep "/main/")
-          # إضافة tools:replace لوسم com.google.ar.core
           sed -i 's|android:name="com.google.ar.core"|android:name="com.google.ar.core" tools:replace="android:value"|g' "$MANIFEST_PATH"
-          # التأكد من إضافة xmlns:tools في وسم manifest
           sed -i 's|<manifest|<manifest xmlns:tools="http://schemas.android.com/tools"|' "$MANIFEST_PATH"
 
       - name: Set up Android SDK
