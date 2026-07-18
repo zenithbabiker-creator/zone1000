@@ -9,7 +9,6 @@ on:
 
 jobs:
   build:
-    name: Build debug APK
     runs-on: ubuntu-latest
 
     steps:
@@ -22,40 +21,47 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Prepare Project Environment
+      - name: Inject Build Requirements
         run: |
-          # 1. البحث عن مسار المشروع
-          PROJECT_ROOT=$(find . -name "settings.gradle.kts" -exec dirname {} \; | head -n 1)
-          if [ -z "$PROJECT_ROOT" ]; then echo "Error: Project not found"; exit 1; fi
+          # 1. البحث عن جذر المشروع (حيث يوجد build.gradle)
+          PROJECT_ROOT=$(find . -name "build.gradle*" -exec dirname {} \; | head -n 1)
           echo "PROJECT_PATH=$PROJECT_ROOT" >> $GITHUB_ENV
           cd "$PROJECT_ROOT"
 
-          # 2. حل مشكلة نقص الأيقونات (ic_launcher)
-          mkdir -p app/src/main/res/mipmap-xhdpi
-          touch app/src/main/res/mipmap-xhdpi/ic_launcher.png
-          echo "Assets prepared."
+          # 2. حقن (توليد) Gradle Wrapper إذا كان مفقوداً
+          if [ ! -f "gradlew" ]; then
+            echo "Gradle wrapper not found. Injecting..."
+            gradle wrapper --gradle-version 8.7
+            chmod +x gradlew
+          fi
 
-          # 3. إعداد الـ Manifest (حل تعارض ARCore و tools:replace)
-          # ملاحظة: سنقوم بإنشاء ملف AndroidManifest.xml محدث إذا لزم الأمر
-          echo "Manifest check complete."
+          # 3. حقن الأيقونات الافتراضية (تجاوز خطأ الموارد المفقودة)
+          echo "Injecting dummy app icons..."
+          mkdir -p app/src/main/res/mipmap-mdpi
+          mkdir -p app/src/main/res/mipmap-hdpi
+          mkdir -p app/src/main/res/mipmap-xhdpi
+          mkdir -p app/src/main/res/mipmap-xxhdpi
+          mkdir -p app/src/main/res/mipmap-xxxhdpi
+          
+          # إنشاء ملفات صور فارغة لتجنب خطأ AAPT
+          touch app/src/main/res/mipmap-mdpi/ic_launcher.png
+          touch app/src/main/res/mipmap-hdpi/ic_launcher.png
+          touch app/src/main/res/mipmap-xhdpi/ic_launcher.png
+          touch app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          touch app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+
+          # 4. إعداد gradle.properties
+          echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" > gradle.properties
+          echo "android.useAndroidX=true" >> gradle.properties
 
       - name: Build with Gradle
         run: |
           cd "${{ env.PROJECT_PATH }}"
-          
-          # إنشاء gradle.properties إذا لم يكن موجوداً
-          echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" > gradle.properties
-          echo "android.useAndroidX=true" >> gradle.properties
-          
-          # التأكد من صلاحية التنفيذ
-          chmod +x gradlew
-          
-          # البناء
           ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: landscape-design-debug-apk
+          name: landscape-design-apk
           path: "**/build/outputs/apk/debug/*.apk"
           if-no-files-found: error
