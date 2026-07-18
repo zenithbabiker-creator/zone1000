@@ -17,14 +17,14 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # نتوجه مباشرة إلى المجلد الذي يحتوي على ملفات المشروع
+      # التعديل موجود هنا: التوجه للمجلد الصحيح والقيام بالبناء مع زيادة الذاكرة والـ stacktrace
       - name: Build with Gradle
         working-directory: LandscapeDesignApp/LandscapeDesignApp
         run: |
-          gradle wrapper --gradle-version 8.7
           chmod +x gradlew
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease --stacktrace
 
+      # رفع ملف الـ APK الناتج
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
