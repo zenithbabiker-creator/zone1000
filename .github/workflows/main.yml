@@ -22,26 +22,39 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Configure Environment and Build
+      - name: Locate and Build
         run: |
-          # 1. الانتقال المباشر إلى جذر مشروع الأندرويد الفعلي
-          cd LandscapeDesignApp
+          # 1. البحث عن المجلد الذي يحتوي على settings.gradle.kts (دليل جذر مشروع Gradle)
+          # سنبحث عن المسار الصحيح للمشروع داخل المستودع بالكامل
+          PROJECT_ROOT=$(find . -name "settings.gradle.kts" -exec dirname {} \; | head -n 1)
           
-          # 2. إنشاء إعدادات المشروع الافتراضية مع دعم AndroidX والذاكرة المطلوبة للـ Core/SceneView
+          if [ -z "$PROJECT_ROOT" ]; then
+            echo "خطأ: لم يتم العثور على ملف settings.gradle.kts في أي مكان!"
+            exit 1
+          fi
+          
+          echo "تم العثور على جذر المشروع في: $PROJECT_ROOT"
+          cd "$PROJECT_ROOT"
+          
+          # 2. إعدادات الذاكرة وتفعيل الخصائص
           echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" > gradle.properties
           echo "android.useAndroidX=true" >> gradle.properties
           echo "android.enableJetifier=false" >> gradle.properties
-
-          # 3. توليد ملف الـ Wrapper بالنسخة 8.7 المطابقة لمتطلبات مشروعك تماماً
-          gradle wrapper --gradle-version 8.7
-          chmod +x gradlew
           
-          # 4. تنفيذ أمر البناء النظيف وحقن أدوات المعالجة
+          # 3. التأكد من وجود Wrapper
+          if [ ! -f "gradlew" ]; then
+            echo "جاري إنشاء Gradle Wrapper..."
+            gradle wrapper --gradle-version 8.7
+            chmod +x gradlew
+          fi
+          
+          # 4. البناء
           ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: landscape-design-debug-apk
-          path: LandscapeDesignApp/app/build/outputs/apk/debug/*.apk
+          # البحث عن ملف الـ APK في أي مكان داخل المستودع بعد البناء
+          path: "**/build/outputs/apk/debug/*.apk"
           if-no-files-found: error
