@@ -16,31 +16,30 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          # إضافة الكاش لحل أخطاء التحميل والتزامن
+          cache: gradle
 
-      # تنظيف أي مجلدات أيقونات قد تسبب فشل في البناء
-      - name: Cleanup Resource Icons
+      # بدلاً من حذف المجلدات الذي يكسر التطبيق، نقوم بضمان وجود مجلدات صالحة
+      - name: Prepare Resource Directories
         working-directory: LandscapeDesignApp/LandscapeDesignApp
         run: |
-          rm -rf app/src/main/res/mipmap-mdpi
-          rm -rf app/src/main/res/mipmap-hdpi
-          rm -rf app/src/main/res/mipmap-xhdpi
-          rm -rf app/src/main/res/mipmap-xxhdpi
-          rm -rf app/src/main/res/mipmap-xxxhdpi
+          mkdir -p app/src/main/res/mipmap-mdpi
+          mkdir -p app/src/main/res/mipmap-hdpi
+          mkdir -p app/src/main/res/mipmap-xhdpi
+          mkdir -p app/src/main/res/mipmap-xxhdpi
+          mkdir -p app/src/main/res/mipmap-xxxhdpi
 
-      # توليد الـ wrapper
-      - name: Setup Gradle Wrapper
+      # التأكد من صلاحيات التنفيذ قبل أي عملية
+      - name: Grant Execute Permission
         working-directory: LandscapeDesignApp/LandscapeDesignApp
-        run: |
-          gradle wrapper --gradle-version 8.7
+        run: chmod +x gradlew
 
-      # البناء مع تنظيف أي ملفات مؤقتة
+      # البناء مع استخدام flag --no-daemon لتجنب مشاكل الذاكرة في الـ Actions
       - name: Build with Gradle
         working-directory: LandscapeDesignApp/LandscapeDesignApp
-        run: |
-          chmod +x gradlew
-          ./gradlew clean assembleRelease --stacktrace
+        run: ./gradlew clean assembleRelease --no-daemon --stacktrace
 
-      # رفع الـ APK
+      # رفع الـ APK الناتج
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
