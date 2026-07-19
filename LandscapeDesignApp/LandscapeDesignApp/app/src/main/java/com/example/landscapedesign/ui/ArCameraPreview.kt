@@ -14,15 +14,13 @@ import io.github.sceneview.ar.ARSceneView
 
 @Composable
 fun ArCameraPreview(
-    // تم إضافة context هنا ليتوافق مع متطلبات الاستدعاء التي ظهرت في الأخطاء
-    context: Context = LocalContext.current, 
+    context: Context = LocalContext.current,
     arSessionManager: ARSessionManager,
     onTap: (x: Float, y: Float, frame: Frame?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var latestFrame by remember { mutableStateOf<Frame?>(null) }
 
-    // استخدام الـ modifier الممرر للحاوية الخارجية
     Box(modifier = modifier) {
         
         ARSceneView(
