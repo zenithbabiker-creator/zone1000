@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.example.landscapedesign.ar.ARSessionManager
 import com.google.ar.core.Frame
 import io.github.sceneview.ar.ARSceneView
@@ -14,7 +15,9 @@ fun ArCameraPreview(
     onTap: (x: Float, y: Float, frame: Frame?) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // تم حذف context من البارامترات تماماً لإنهاء التعارض
+    // نجلب الـ context محلياً هنا لتجنب الحاجة لتمريره من الخارج
+    val context = LocalContext.current
+
     Box(modifier = modifier) {
         ARSceneView(
             modifier = Modifier.fillMaxSize(),
