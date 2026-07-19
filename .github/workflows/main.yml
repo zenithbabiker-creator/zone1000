@@ -7,6 +7,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: LandscapeDesignApp/LandscapeDesignApp
@@ -37,8 +38,9 @@ jobs:
           mkdir -p app/src/main/res/mipmap-xxhdpi
           mkdir -p app/src/main/res/mipmap-xxxhdpi
 
+      # تم استبدال clean بـ build-cache لتسريع العملية وعدم البدء من الصفر
       - name: Build with Gradle
-        run: ./gradlew clean assembleRelease --no-daemon --stacktrace
+        run: ./gradlew assembleRelease --build-cache --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
