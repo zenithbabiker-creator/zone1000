@@ -1,4 +1,3 @@
-// ملف: app/src/main/java/com/example/landscapedesign/viewmodel/LandscapeViewModel.kt
 package com.example.landscapedesign.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -27,6 +26,13 @@ class LandscapeViewModel : ViewModel() {
     fun addPlant(plant: PlantNode) { _state.update { it.copy(plants = it.plants + plant) } }
     fun updateBoundary(boundary: List<Point3D>) { _state.update { it.copy(gardenBoundary = boundary) } }
     fun updateLawnType(type: String) { _state.update { it.copy(lawnType = type) } }
+    fun updateLawnArea(area: Float) { _state.update { it.copy(lawnAreaM2 = area) } }
+    fun generateReport() {
+        _state.update { currentState ->
+            val report = "المساحة: ${currentState.gardenAreaM2} م2\nنوع النجيلة: ${currentState.lawnType}"
+            currentState.copy(generatedReportText = report)
+        }
+    }
     fun undo() {}
     fun redo() {}
 }
