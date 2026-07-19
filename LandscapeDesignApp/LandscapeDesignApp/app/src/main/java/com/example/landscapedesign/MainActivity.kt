@@ -44,31 +44,12 @@ class MainActivity : ComponentActivity() {
     private val viewModel: LandscapeViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.i(TAG, "onCreate() start")
         super.onCreate(savedInstanceState)
-
-        try {
-            setContent {
-                LandscapeDesignTheme {
-                    val arSessionManager = remember { ARSessionManager() }
-                    LandscapeNavHost(viewModel, arSessionManager)
-                }
+        setContent {
+            LandscapeDesignTheme {
+                val arSessionManager = remember { ARSessionManager() }
+                LandscapeNavHost(viewModel, arSessionManager)
             }
-        } catch (t: Throwable) {
-            Log.e(TAG, "FATAL: setContent() failed", t)
-            setContent {
-                InitErrorScreen(reason = "خطأ في الواجهة: ${t.message}")
-            }
-        }
-    }
-}
-
-@Composable
-private fun InitErrorScreen(reason: String) {
-    Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(text = "حدث خطأ عند بدء التشغيل", style = MaterialTheme.typography.headlineSmall)
-            Text(text = reason, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -93,12 +74,7 @@ fun LandscapeNavHost(viewModel: LandscapeViewModel, arSessionManager: ARSessionM
             )
         }
         composable(Routes.STEP3) {
-            // تم التأكد من تمرير viewModel فقط، والـ onNext للتحكم في التنقل
-            Step3DesignStudioScreen(
-                viewModel = viewModel
-                // إذا كانت شاشتك تتطلب onNext هنا، أضفها:
-                // onNext = { navController.navigate(Routes.STEP4) }
-            )
+            Step3DesignStudioScreen(viewModel = viewModel)
         }
         composable(Routes.STEP4) {
             Step4LawnCalculationScreen(
@@ -111,7 +87,7 @@ fun LandscapeNavHost(viewModel: LandscapeViewModel, arSessionManager: ARSessionM
             Step5ReportScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
-                onFinish = { /* منطق إنهاء العملية */ }
+                onFinish = { }
             )
         }
     }
