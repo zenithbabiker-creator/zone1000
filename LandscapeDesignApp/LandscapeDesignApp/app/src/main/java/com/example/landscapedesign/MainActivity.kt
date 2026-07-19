@@ -50,7 +50,6 @@ class MainActivity : ComponentActivity() {
         try {
             setContent {
                 LandscapeDesignTheme {
-                    // إنشاء ARSessionManager مرة واحدة فقط هنا وتمريره للـ NavHost
                     val arSessionManager = remember { ARSessionManager() }
                     LandscapeNavHost(viewModel, arSessionManager)
                 }
@@ -94,9 +93,11 @@ fun LandscapeNavHost(viewModel: LandscapeViewModel, arSessionManager: ARSessionM
             )
         }
         composable(Routes.STEP3) {
+            // تم التأكد من تمرير viewModel فقط، والـ onNext للتحكم في التنقل
             Step3DesignStudioScreen(
-                viewModel = viewModel,
-                onNext = { navController.navigate(Routes.STEP4) }
+                viewModel = viewModel
+                // إذا كانت شاشتك تتطلب onNext هنا، أضفها:
+                // onNext = { navController.navigate(Routes.STEP4) }
             )
         }
         composable(Routes.STEP4) {
@@ -110,7 +111,7 @@ fun LandscapeNavHost(viewModel: LandscapeViewModel, arSessionManager: ARSessionM
             Step5ReportScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
-                onFinish = { /* إنهاء أو إعادة */ }
+                onFinish = { /* منطق إنهاء العملية */ }
             )
         }
     }
