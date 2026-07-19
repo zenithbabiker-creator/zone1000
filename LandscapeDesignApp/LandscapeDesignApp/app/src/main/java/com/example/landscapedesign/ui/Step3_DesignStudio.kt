@@ -53,7 +53,6 @@ fun Step3DesignStudioScreen(
 
     var activeTool by remember { mutableStateOf(StudioTool.NONE) }
     var activePlant by remember { mutableStateOf<PlantType?>(null) }
-    var lastTouchWorld by remember { mutableStateOf<Point3D?>(null) }
 
     Scaffold(
         topBar = {
@@ -98,7 +97,6 @@ fun Step3DesignStudioScreen(
                     .pointerInput(activeTool, activePlant) {
                         detectTapGestures { offset ->
                             val world = mapper.screenToWorld(offset)
-                            lastTouchWorld = world
                             if (activeTool == StudioTool.PLANT && activePlant != null) {
                                 viewModel.addPlant(PlantNode(type = activePlant!!, world = world, screen = ScreenPoint(offset.x, offset.y)))
                             }
