@@ -31,10 +31,10 @@ fun Step1AreaCaptureScreen(
     Scaffold { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (hasCameraPermission) {
-               ArCameraPreview(
+              ArCameraPreview(
     arSessionManager = arSessionManager,
-    onTap = { _, _, _ -> }
-    // قمت بحذف modifier هنا لاختبار رد فعل المترجم
+    onTap = { x, y, frame -> /* منطق الـ tap الخاص بك */ },
+    modifier = Modifier.fillMaxSize()
 )
             }
         }
