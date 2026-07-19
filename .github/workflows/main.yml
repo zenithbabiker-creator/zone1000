@@ -29,7 +29,7 @@ jobs:
           gradle wrapper --gradle-version 8.7
           chmod +x gradlew
 
-      # التأكد من صحة الموارد قبل البناء
+      # التأكد من صحة الموارد قبل البناء (لم يتم تغيير أي شيء هنا)
       - name: Prepare Resource Directories
         run: |
           mkdir -p app/src/main/res/mipmap-mdpi
@@ -38,12 +38,13 @@ jobs:
           mkdir -p app/src/main/res/mipmap-xxhdpi
           mkdir -p app/src/main/res/mipmap-xxxhdpi
 
-      # تم استبدال clean بـ build-cache لتسريع العملية وعدم البدء من الصفر
+      # تم التعديل إلى assembleDebug لإنتاج ملف قابل للتثبيت مباشرة
       - name: Build with Gradle
-        run: ./gradlew clean assembleRelease --no-build-cache --stacktrace
+        run: ./gradlew clean assembleDebug --no-build-cache --stacktrace
 
+      # تم تحديث اسم الـ Artifact ليعبر عن النسخة التجريبية
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
+          name: app-debug
           path: '**/build/outputs/apk/**/*.apk'
