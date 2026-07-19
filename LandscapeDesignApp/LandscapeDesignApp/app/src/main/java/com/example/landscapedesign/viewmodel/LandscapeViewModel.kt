@@ -23,16 +23,40 @@ class LandscapeViewModel : ViewModel() {
     private val _state = MutableStateFlow(LandscapeState())
     val state: StateFlow<LandscapeState> = _state.asStateFlow()
 
-    fun addPlant(plant: PlantNode) { _state.update { it.copy(plants = it.plants + plant) } }
-    fun updateBoundary(boundary: List<Point3D>) { _state.update { it.copy(gardenBoundary = boundary) } }
-    fun updateLawnType(type: String) { _state.update { it.copy(lawnType = type) } }
-    fun updateLawnArea(area: Float) { _state.update { it.copy(lawnAreaM2 = area) } }
+    // دوال تحديث الحالة
+    fun addPlant(plant: PlantNode) { 
+        _state.update { it.copy(plants = it.plants + plant) } 
+    }
+
+    fun updateBoundary(boundary: List<Point3D>) { 
+        _state.update { it.copy(gardenBoundary = boundary) } 
+    }
+
+    fun updateLawnType(type: String) { 
+        _state.update { it.copy(lawnType = type) } 
+    }
+
+    fun updateLawnArea(area: Float) { 
+        _state.update { it.copy(lawnAreaM2 = area) } 
+    }
+
+    // الدالة التي كانت مفقودة:
+    fun updateSoilThickness(thickness: Int) { 
+        _state.update { it.copy(soilThicknessCm = thickness) } 
+    }
+
     fun generateReport() {
         _state.update { currentState ->
             val report = "المساحة: ${currentState.gardenAreaM2} م2\nنوع النجيلة: ${currentState.lawnType}"
             currentState.copy(generatedReportText = report)
         }
     }
-    fun undo() {}
-    fun redo() {}
+
+    fun undo() {
+        // يمكن إضافة منطق التراجع هنا
+    }
+    
+    fun redo() {
+        // يمكن إضافة منطق الإعادة هنا
+    }
 }
