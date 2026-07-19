@@ -15,7 +15,7 @@ fun ArCameraPreview(
     arSessionManager: ARSessionManager,
     onTap: (x: Float, y: Float, frame: Frame?) -> Unit,
     modifier: Modifier = Modifier,
-    context: Context = LocalContext.current // إضافة هذا البارامتر يحل مشكلة الـ Missing context
+    context: Context = LocalContext.current
 ) {
     Box(modifier = modifier) {
         ARSceneView(
