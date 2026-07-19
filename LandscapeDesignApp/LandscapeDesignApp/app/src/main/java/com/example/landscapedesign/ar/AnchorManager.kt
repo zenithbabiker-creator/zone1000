@@ -45,8 +45,8 @@ class AnchorManager(private val arSessionManager: ARSessionManager) {
     }
 
     private fun addAnchorFromHit(hit: HitResult, screenX: Float, screenY: Float): Boolean {
-        // الوصول للـ session من arSessionManager وتأمين إنشاء الـ Anchor
-        val session = arSessionManager.getSession() ?: return false
+        // تم تصحيح الوصول للـ session ليطابق الخاصية العامة في ARSessionManager
+        val session = arSessionManager.session ?: return false
         val anchor = session.createAnchor(hit.hitPose) ?: return false
         
         anchors.add(anchor)
