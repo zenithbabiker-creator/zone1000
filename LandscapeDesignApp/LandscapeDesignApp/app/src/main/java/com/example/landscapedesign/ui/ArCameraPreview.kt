@@ -22,7 +22,6 @@ fun ArCameraPreview(
     var latestFrame by remember { mutableStateOf<Frame?>(null) }
 
     Box(modifier = modifier) {
-        
         ARSceneView(
             modifier = Modifier.fillMaxSize(),
             onSessionUpdated = { session, frame ->
@@ -32,7 +31,6 @@ fun ArCameraPreview(
             }
         )
 
-        // طبقة شفافة فوق الـ AR لتلقي اللمسات
         Box(
             modifier = Modifier
                 .fillMaxSize()
