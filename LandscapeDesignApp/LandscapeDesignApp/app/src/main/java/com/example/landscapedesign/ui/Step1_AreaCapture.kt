@@ -1,42 +1,29 @@
 package com.example.landscapedesign.ui
 
-import android.Manifest
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import android.content.Context
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.example.landscapedesign.ar.ARSessionManager
-import com.example.landscapedesign.viewmodel.LandscapeViewModel
+import com.google.ar.core.Frame
+import io.github.sceneview.ar.ARSceneView
 
 @Composable
-fun Step1AreaCaptureScreen(
-    viewModel: LandscapeViewModel,
+fun ArCameraPreview(
     arSessionManager: ARSessionManager,
-    onNext: () -> Unit
+    onTap: (x: Float, y: Float, frame: Frame?) -> Unit,
+    modifier: Modifier = Modifier,
+    context: Context = LocalContext.current
 ) {
-    var hasCameraPermission by remember { mutableStateOf(false) }
-    
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted -> hasCameraPermission = isGranted }
-
-    LaunchedEffect(Unit) {
-        launcher.launch(Manifest.permission.CAMERA)
-    }
-
-    Scaffold { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            if (hasCameraPermission) {
-              ArCameraPreview(
-    arSessionManager = arSessionManager,
-    onTap = { x, y, frame -> /* منطق الـ tap الخاص بك */ },
-    modifier = Modifier.fillMaxSize()
-)
+    Box(modifier = modifier) {
+        ARSceneView(
+            modifier = Modifier.fillMaxSize(),
+            onSessionUpdated = { session, frame ->
+                arSessionManager.bindSession(session)
+                arSessionManager.onFrameUpdated(session, frame)
             }
-        }
+        )
     }
 }
