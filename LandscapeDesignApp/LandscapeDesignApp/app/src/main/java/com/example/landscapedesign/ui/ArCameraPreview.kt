@@ -16,22 +16,26 @@ fun ArCameraPreview(
     arSessionManager: ARSessionManager,
     onTap: (x: Float, y: Float, frame: Frame?) -> Unit
 ) {
-    val context = LocalContext.current // جلب السياق الحالي
+    val context = LocalContext.current
+
+    // التأكد من تنظيف الموارد عند خروج المستخدم من الشاشة
+    DisposableEffect(Unit) {
+        onDispose {
+            // هنا يمكنك إضافة كود لإيقاف الجلسة إذا كان الـ ARSessionManager يدعم ذلك
+            // arSessionManager.pause() أو ما يشابهه
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
-                // إنشاء الـ ARSceneView يدوياً
                 ARSceneView(ctx).apply {
                     onSessionUpdated = { session, frame ->
                         arSessionManager.bindSession(session)
                         arSessionManager.onFrameUpdated(session, frame)
                     }
                 }
-            },
-            update = { arSceneView ->
-                // تحديثات إضافية إذا لزم الأمر
             }
         )
     }
