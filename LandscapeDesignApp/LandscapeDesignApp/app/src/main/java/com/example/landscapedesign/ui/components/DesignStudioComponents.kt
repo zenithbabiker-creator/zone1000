@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -28,9 +29,7 @@ import com.example.landscapedesign.R
 import com.example.landscapedesign.model.BorderElement
 
 /**
- * Dialog for entering a precise numeric radius (in meters) when placing a
- * Circle/Arc shape around a major tree. Validates the input is a positive
- * float and disables the confirm button otherwise.
+ * Dialog for entering a precise numeric radius (in meters).
  */
 @Composable
 fun RadiusInputDialog(
@@ -66,8 +65,7 @@ fun RadiusInputDialog(
 }
 
 /**
- * Dialog for entering "trees per meter" density when the user chooses to
- * fill a shape's perimeter with a hedge plant.
+ * Dialog for entering "trees per meter" density.
  */
 @Composable
 fun TreesPerMeterDialog(
@@ -154,9 +152,10 @@ fun BorderConfigRow(
                         .fillMaxWidth()
                         .menuAnchor()
                 )
-                androidx.compose.material3.ExposedDropdownMenu(
+                DropdownMenu(
                     expanded = densityExpanded,
-                    onDismissRequest = { densityExpanded = false }
+                    onDismissRequest = { densityExpanded = false },
+                    modifier = Modifier.exposedDropdownSize()
                 ) {
                     densityOptions.forEach { d ->
                         DropdownMenuItem(
