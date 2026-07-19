@@ -150,7 +150,9 @@ fun BorderConfigRow(
                     onValueChange = {},
                     label = { Text(stringResource(R.string.density_per_meter_label)) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = densityExpanded) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor()
                 )
                 androidx.compose.material3.ExposedDropdownMenu(
                     expanded = densityExpanded,
