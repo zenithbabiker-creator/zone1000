@@ -45,7 +45,7 @@ class AnchorManager(private val arSessionManager: ARSessionManager) {
     }
 
     private fun addAnchorFromHit(hit: HitResult, screenX: Float, screenY: Float): Boolean {
-        // التصحيح هنا: الوصول للـ session من arSessionManager ثم إنشاء الـ Anchor
+        // الوصول للـ session من arSessionManager وتأمين إنشاء الـ Anchor
         val session = arSessionManager.getSession() ?: return false
         val anchor = session.createAnchor(hit.hitPose) ?: return false
         
@@ -54,6 +54,7 @@ class AnchorManager(private val arSessionManager: ARSessionManager) {
         val pose = hit.hitPose
         val world = Point3D(pose.tx(), pose.ty(), pose.tz())
         val newPoint = AnchorPoint(world = world, screen = ScreenPoint(screenX, screenY))
+        
         _points.value = _points.value + newPoint
         recalculateArea()
         return true
@@ -68,7 +69,9 @@ class AnchorManager(private val arSessionManager: ARSessionManager) {
     fun removeLastPoint() {
         val current = _points.value
         if (current.isEmpty()) return
+        
         _points.value = current.dropLast(1)
+        
         if (anchors.isNotEmpty()) {
             anchors.removeLast().detach()
         }
@@ -86,6 +89,7 @@ class AnchorManager(private val arSessionManager: ARSessionManager) {
     fun pruneUntracked() {
         val stillTracking = anchors.filter { it.trackingState == TrackingState.TRACKING }
         if (stillTracking.size != anchors.size) {
+            anchors.forEach { if (it.trackingState != TrackingState.TRACKING) it.detach() }
             anchors.clear()
             anchors.addAll(stillTracking)
         }
