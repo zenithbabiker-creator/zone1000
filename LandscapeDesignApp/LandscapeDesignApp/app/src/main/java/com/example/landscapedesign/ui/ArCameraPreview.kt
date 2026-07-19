@@ -1,3 +1,4 @@
+// ملف: app/src/main/java/com/example/landscapedesign/ui/ArCameraPreview.kt
 package com.example.landscapedesign.ui
 
 import android.content.Context
