@@ -14,10 +14,10 @@ import io.github.sceneview.ar.ARSceneView
 
 @Composable
 fun ArCameraPreview(
-    context: Context = LocalContext.current,
     arSessionManager: ARSessionManager,
     onTap: (x: Float, y: Float, frame: Frame?) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    context: Context = LocalContext.current
 ) {
     var latestFrame by remember { mutableStateOf<Frame?>(null) }
 
