@@ -1,6 +1,8 @@
 package com.example.landscapedesign.ui
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import com.example.landscapedesign.ar.ARSessionManager
 import com.example.landscapedesign.viewmodel.LandscapeViewModel
 
@@ -10,11 +12,12 @@ fun Step1AreaCaptureScreen(
     arSessionManager: ARSessionManager,
     onNext: () -> Unit
 ) {
-    // استخدم الدالة المعرفة في ArCameraPreview.kt هنا
+    // تم استخدام الدالة المحدثة التي تقبل المعاملات الاختيارية
     ArCameraPreview(
         arSessionManager = arSessionManager,
+        modifier = Modifier.fillMaxSize(),
         onTap = { x, y, frame -> 
-            // المنطق الخاص بك هنا
+            // يمكنك هنا إضافة المنطق الخاص بك عند النقر على الشاشة
         }
     )
 }
