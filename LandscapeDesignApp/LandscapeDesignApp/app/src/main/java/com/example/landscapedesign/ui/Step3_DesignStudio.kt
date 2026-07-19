@@ -2,26 +2,22 @@ package com.example.landscapedesign.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Redo
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.example.landscapedesign.R
-import com.example.landscapedesign.geometry.GeometryUtils
 import com.example.landscapedesign.model.*
 import com.example.landscapedesign.ui.components.PlantDropperMenu
 import com.example.landscapedesign.ui.components.ShapeToolbar
@@ -29,6 +25,21 @@ import com.example.landscapedesign.viewmodel.LandscapeViewModel
 
 /** Active interaction tool in the design canvas. */
 private enum class StudioTool { NONE, ARC, CIRCLE, POLYGON, PLANT, ERASER }
+
+/** Helper to map between real world meters and screen pixels */
+private class ScreenMapper(val canvasSize: IntSize, val pixelsPerMeter: Float = 40f) {
+    private val originX get() = canvasSize.width / 2f
+    private val originY get() = canvasSize.height / 2f
+
+    fun worldToScreen(p: Point3D): Offset =
+        Offset(originX + p.x * pixelsPerMeter, originY - p.z * pixelsPerMeter)
+
+    fun screenToWorld(offset: Offset): Point3D {
+        val x = (offset.x - originX) / pixelsPerMeter
+        val z = -(offset.y - originY) / pixelsPerMeter
+        return Point3D(x, 0f, z)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,7 +72,7 @@ fun Step3DesignStudioScreen(
                 ShapeToolbar(
                     activeTool = activeTool.name,
                     onToolSelected = { toolName ->
-                        val tool = StudioTool.valueOf(toolName)
+                        val tool = try { StudioTool.valueOf(toolName) } catch (e: Exception) { StudioTool.NONE }
                         activeTool = if (activeTool == tool) StudioTool.NONE else tool
                         if (activeTool != StudioTool.PLANT) activePlant = null
                     }
@@ -89,7 +100,8 @@ fun Step3DesignStudioScreen(
                             val world = mapper.screenToWorld(offset)
                             lastTouchWorld = world
                             if (activeTool == StudioTool.PLANT && activePlant != null) {
-                                viewModel.addPlant(PlantNode(type = activePlant!!, world = world))
+                                // أضفنا ScreenPoint فارغ لتجنب خطأ الـ Missing parameter
+                                viewModel.addPlant(PlantNode(type = activePlant!!, world = world, screen = ScreenPoint(offset.x, offset.y)))
                             }
                         }
                     }
