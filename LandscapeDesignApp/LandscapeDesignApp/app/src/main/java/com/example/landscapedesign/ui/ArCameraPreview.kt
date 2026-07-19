@@ -1,6 +1,5 @@
 package com.example.landscapedesign.ui
 
-import android.content.Context
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
@@ -14,9 +13,11 @@ import io.github.sceneview.ar.ARSceneView
 fun ArCameraPreview(
     arSessionManager: ARSessionManager,
     onTap: (x: Float, y: Float, frame: Frame?) -> Unit,
-    modifier: Modifier = Modifier,
-    context: Context = LocalContext.current
+    modifier: Modifier = Modifier
 ) {
+    // تم نقل الـ context إلى الداخل ليكون محلياً ولا يحتاج تمريره كبارامتر
+    val context = LocalContext.current 
+    
     Box(modifier = modifier) {
         ARSceneView(
             modifier = Modifier.fillMaxSize(),
