@@ -100,7 +100,6 @@ fun Step3DesignStudioScreen(
                             val world = mapper.screenToWorld(offset)
                             lastTouchWorld = world
                             if (activeTool == StudioTool.PLANT && activePlant != null) {
-                                // أضفنا ScreenPoint فارغ لتجنب خطأ الـ Missing parameter
                                 viewModel.addPlant(PlantNode(type = activePlant!!, world = world, screen = ScreenPoint(offset.x, offset.y)))
                             }
                         }
