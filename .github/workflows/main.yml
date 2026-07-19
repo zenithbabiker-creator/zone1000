@@ -40,7 +40,7 @@ jobs:
 
       # تم استبدال clean بـ build-cache لتسريع العملية وعدم البدء من الصفر
       - name: Build with Gradle
-        run: ./gradlew assembleRelease --build-cache --stacktrace
+        run: ./gradlew clean assembleRelease --no-build-cache --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
