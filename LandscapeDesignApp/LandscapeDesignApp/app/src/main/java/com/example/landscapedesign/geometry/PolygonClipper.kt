@@ -106,4 +106,3 @@ object PolygonClipper {
         }
     }
 }
-```[cite: 8]
