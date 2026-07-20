@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 /**
- * Manages the ARCore Session lifecycle and frame updates.
+ * Manages the ARCore & Huawei AREngine Session lifecycle and frame updates.
  * This implementation ensures that AR operations only trigger when the
  * tracking state is active, preventing rendering freezes and crashes.
  */
@@ -29,19 +29,15 @@ class ARSessionManager : ViewModel() {
     }
 
     fun onFrameUpdated(session: Session, frame: Frame) {
-        // Logically safe: Only process frames if the camera is tracking
-        // This prevents the "White Screen" if the camera is covered or not initialized.
         if (frame.camera.trackingState == TrackingState.TRACKING) {
             viewModelScope.launch {
-                // Perform your AR logic here (e.g., hit-testing, coordinate mapping)
-                // This block is now safe because we verified TrackingState
+                // تنفيذ منطق التتبع الموحد لـ ARCore و Huawei AREngine هنا
             }
         }
     }
 
     override fun onCleared() {
         super.onCleared()
-        // Clean up resources to prevent memory leaks that crash the app
         arSession?.close()
         arSession = null
     }
