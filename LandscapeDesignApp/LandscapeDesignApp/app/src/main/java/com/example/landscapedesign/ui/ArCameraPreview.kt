@@ -1,41 +1,34 @@
-package com.example.landscapedesign.ui
+package com.example.landscapedesign.ar
 
-import android.content.Context
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.viewinterop.AndroidView
-import com.example.landscapedesign.ar.ARSessionManager
+import io.github.sceneview.ar.ARScene
+import com.google.ar.core.Config
 import com.google.ar.core.Frame
-import io.github.sceneview.ar.ARSceneView
 
 @Composable
 fun ArCameraPreview(
+    modifier: Modifier = Modifier,
     arSessionManager: ARSessionManager,
-    onTap: (x: Float, y: Float, frame: Frame?) -> Unit
+    onTap: (Float, Float, Frame?) -> Unit = { _, _, _ -> }
 ) {
-    val context = LocalContext.current
-
-    // التأكد من تنظيف الموارد عند خروج المستخدم من الشاشة
-    DisposableEffect(Unit) {
-        onDispose {
-            // هنا يمكنك إضافة كود لإيقاف الجلسة إذا كان الـ ARSessionManager يدعم ذلك
-            // arSessionManager.pause() أو ما يشابهه
-        }
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { ctx ->
-                ARSceneView(ctx).apply {
-                    onSessionUpdated = { session, frame ->
-                        arSessionManager.bindSession(session)
-                        arSessionManager.onFrameUpdated(session, frame)
-                    }
-                }
+    if (arSessionManager.isArSupported) {
+        ARScene(
+            modifier = modifier,
+            // إعدادات جلسة الواقع المعزز لتتبع الأسطح الأفقية ورسم الحدود بدقة
+            sessionConfiguration = { session, config ->
+                config.depthMode = Config.DepthMode.AUTOMATIC
+                config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL
+                config.updateMode = Config.UpdateMode.LATEST_CAMERA_IMAGE
+            },
+            onSessionUpdated = { session, frame ->
+                // يمكن تحديث الإطارات أو تتبع الحركة هنا عند الحاجة
+            },
+            onTap = { hitResult, plane, motionEvent ->
+                // التقاط الإحداثيات عند النقر على الشاشة لتحديد النقاط ومساحة الحديقة
+                val x = motionEvent.x
+                val y = motionEvent.y
+                onTap(x, y, null)
             }
         )
     }
