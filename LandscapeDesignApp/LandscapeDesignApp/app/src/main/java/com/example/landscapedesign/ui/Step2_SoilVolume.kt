@@ -16,18 +16,35 @@ fun Step2SoilVolumeScreen(
     val state by viewModel.state.collectAsState()
     
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(text = "حساب حجم التربة", style = MaterialTheme.typography.headlineSmall)
+        Text(text = "الخطوة ٢: حساب كمية التراب", style = MaterialTheme.typography.headlineSmall)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(text = "مساحة الحديقة: ${String.format("%.2f", state.gardenAreaM2)} م²")
+        Spacer(modifier = Modifier.height(16.dp))
         
+        Text(text = "اختر سماكة الردم: ${state.soilThicknessCm} سم")
         Slider(
             value = state.soilThicknessCm.toFloat(),
             onValueChange = { viewModel.updateSoilThickness(it.toInt()) },
-            valueRange = 10f..100f
+            valueRange = 10f..100f,
+            steps = 18
         )
-        Text(text = "سمك التربة: ${state.soilThicknessCm} سم")
         
         Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "كمية التراب المطلوبة للردم: ${String.format("%.2f", state.soilVolumeM3)} متر مكعب",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
         
-        Button(onClick = onNext) { Text("التالي") }
-        Button(onClick = onBack) { Text("عودة") }
+        Spacer(modifier = Modifier.weight(1f))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Button(onClick = onBack) { Text("رجوع") }
+            Button(onClick = onNext) { Text("التالي") }
+        }
     }
 }
