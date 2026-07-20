@@ -143,4 +143,3 @@ data class BorderElement(
         return kotlin.math.ceil(raw.toDouble()).toInt()
     }
 }
-```[cite: 8]
