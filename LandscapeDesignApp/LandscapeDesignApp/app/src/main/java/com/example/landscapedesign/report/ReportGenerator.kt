@@ -12,14 +12,10 @@ import com.example.landscapedesign.model.ShapeElement
 /**
  * Compiles the entire [DesignLayoutState] into a single, detailed Arabic
  * narrative report intended to feed a downstream generative-AI rendering
- * stage. All four sections are populated live from current app state.
+ * stage. All four sections are populated live from current app state[cite: 10].
  */
 object ReportGenerator {
 
-    /**
-     * @param boundary the base garden polygon (used to compute each major
-     * tree's distance to the two nearest boundary edges).
-     */
     fun generateFinalLandscapeReport(
         state: DesignLayoutState,
         boundary: List<Point3D> = state.gardenBoundary
@@ -37,9 +33,6 @@ object ReportGenerator {
         return sb.toString()
     }
 
-    // -----------------------------------------------------------------
-    // SECTION 1: General dimensions & site preparation
-    // -----------------------------------------------------------------
     private fun sectionOneGeneralDimensions(state: DesignLayoutState): String {
         return buildString {
             append("القسم الأول: الأبعاد العامة وتجهيز الموقع\n")
@@ -53,9 +46,6 @@ object ReportGenerator {
         }
     }
 
-    // -----------------------------------------------------------------
-    // SECTION 2: Major trees & spatial positioning
-    // -----------------------------------------------------------------
     private fun sectionTwoMajorTrees(state: DesignLayoutState, boundary: List<Point3D>): String {
         val majorTrees = state.plants.filter {
             it.type == PlantType.ROYAL_PALM || it.type == PlantType.NO_THORN
@@ -103,9 +93,6 @@ object ReportGenerator {
         return sb.toString().trim()
     }
 
-    // -----------------------------------------------------------------
-    // SECTION 3: Landscape borders & eraser integration
-    // -----------------------------------------------------------------
     private fun sectionThreeBorders(state: DesignLayoutState): String {
         val sb = StringBuilder("القسم الثالث: محددات الحديقة والفتحات (الأسوار والممرات)\n")
         for (border in state.borders) {
@@ -140,9 +127,6 @@ object ReportGenerator {
             .format(netLength, statusText, border.openingsCount, GeometryUtils.round2(border.eraserGapsMeters), plantCountText)
     }
 
-    // -----------------------------------------------------------------
-    // SECTION 4: Net lawn area & seeding density
-    // -----------------------------------------------------------------
     private fun sectionFourLawn(state: DesignLayoutState): String {
         return "القسم الرابع: مساحة النجيلة الصافية وكثافة البذر\n" +
             "بعد خصم جميع المحددات الإنشائية ومناطق الأشجار ومحيطاتها بدقة، تم حساب المساحة المتبقية المفتوحة. " +
@@ -164,3 +148,4 @@ object ReportGenerator {
         com.example.landscapedesign.model.ShapeType.POLYGON -> "شكل مخصص"
     }
 }
+```[cite: 10]
