@@ -1,62 +1,69 @@
 package com.example.landscapedesign.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.example.landscapedesign.model.*
+import com.example.landscapedesign.model.LandscapeState
+import com.example.landscapedesign.model.PlantNode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-data class LandscapeState(
-    val gardenBoundary: List<Point3D> = emptyList(),
-    val borders: List<BorderElement> = emptyList(),
-    val plants: List<PlantNode> = emptyList(),
-    val gardenAreaM2: Float = 0.0f,
-    val soilThicknessCm: Int = 20,
-    val soilVolumeM3: Float = 0.0f,
-    val lawnType: String = "نجيلة طبيعية",
-    val lawnAreaM2: Float = 0.0f,
-    val generatedReportText: String = ""
-)
-
 class LandscapeViewModel : ViewModel() {
     private val _state = MutableStateFlow(LandscapeState())
     val state: StateFlow<LandscapeState> = _state.asStateFlow()
 
-    // دوال تحديث الحالة
-    fun addPlant(plant: PlantNode) { 
-        _state.update { it.copy(plants = it.plants + plant) } 
+    private val history = mutableListOf<LandscapeState>()
+    private var historyIndex = -1
+
+    init {
+        saveStateToHistory(_state.value)
     }
 
-    fun updateBoundary(boundary: List<Point3D>) { 
-        _state.update { it.copy(gardenBoundary = boundary) } 
+    private fun saveStateToHistory(newState: LandscapeState) {
+        if (historyIndex < history.size - 1) {
+            history.subList(historyIndex + 1, history.size).clear()
+        }
+        history.add(newState)
+        historyIndex = history.size - 1
     }
 
-    fun updateLawnType(type: String) { 
-        _state.update { it.copy(lawnType = type) } 
+    fun updateSoilThickness(thickness: Int) {
+        _state.update { current ->
+            val volume = (current.areaSquareMeters * thickness) / 100f
+            val updated = current.copy(soilThicknessCm = thickness, soilVolumeCubicMeters = volume)
+            saveStateToHistory(updated)
+            updated
+        }
     }
 
-    fun updateLawnArea(area: Float) { 
-        _state.update { it.copy(lawnAreaM2 = area) } 
+    fun updateLawnType(type: String) {
+        _state.update { current ->
+            val updated = current.copy(lawnType = type)
+            saveStateToHistory(updated)
+            updated
+        }
     }
 
-    // الدالة التي كانت مفقودة:
-    fun updateSoilThickness(thickness: Int) { 
-        _state.update { it.copy(soilThicknessCm = thickness) } 
-    }
-
-    fun generateReport() {
-        _state.update { currentState ->
-            val report = "المساحة: ${currentState.gardenAreaM2} م2\nنوع النجيلة: ${currentState.lawnType}"
-            currentState.copy(generatedReportText = report)
+    fun addPlant(plant: PlantNode) {
+        _state.update { current ->
+            val newPlants = current.plants + plant
+            val updated = current.copy(plants = newPlants)
+            saveStateToHistory(updated)
+            updated
         }
     }
 
     fun undo() {
-        // يمكن إضافة منطق التراجع هنا
+        if (historyIndex > 0) {
+            historyIndex--
+            _state.value = history[historyIndex]
+        }
     }
-    
+
     fun redo() {
-        // يمكن إضافة منطق الإعادة هنا
+        if (historyIndex < history.size - 1) {
+            historyIndex++
+            _state.value = history[historyIndex]
+        }
     }
 }
