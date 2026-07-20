@@ -6,32 +6,10 @@ import com.google.ar.core.Plane
 import com.google.ar.core.Pose
 
 /**
- * Handles MODE 2: Frozen Photo Interaction.
- *
- * When the camera frame is frozen, we no longer get live ARCore HitResults
- * (those require an active Frame each render tick). Instead we reconstruct the
- * exact camera ray that would have produced that screen pixel — using the
- * SAVED View and Projection matrices from the moment of capture — and
- * intersect that ray with the cached horizontal plane equation. This lets the
- * user tap anywhere on the still image and get back an accurate 3D world
- * point on the same ground plane ARCore already located.
+ * Handles MODE 2: Frozen Photo Interaction supporting ARCore and Huawei AREngine planes.
  */
 object FrozenFrameProjector {
 
-    /**
-     * Converts a 2D screen touch (in pixels) into a normalized device
-     * coordinate (NDC) ray in world space, then intersects it with the
-     * tracked plane to recover the real-world (x, y, z) meter position.
-     *
-     * @param screenX, screenY   Touch coordinates in pixels.
-     * @param viewportWidth/Height  Size of the view the frozen photo is displayed in.
-     * @param viewMatrix       The camera View matrix saved at capture time.
-     * @param projectionMatrix The camera Projection matrix saved at capture time.
-     * @param plane            The ARCore [Plane] that was tracked at capture time
-     *                         (still valid — the session was never destroyed).
-     * @return the intersected [Point3D] in world space, or null if the ray is
-     *         parallel to the plane or misses it entirely.
-     */
     fun projectTouchToPlane(
         screenX: Float,
         screenY: Float,
@@ -46,7 +24,7 @@ object FrozenFrameProjector {
         ) ?: return null
 
         val planePose = plane.centerPose
-        val planeNormal = planePose.yAxis // horizontal plane's "up" normal
+        val planeNormal = planePose.yAxis
         val planePoint = floatArrayOf(planePose.tx(), planePose.ty(), planePose.tz())
 
         val hit = rayPlaneIntersection(
@@ -56,16 +34,12 @@ object FrozenFrameProjector {
             planeNormal = planeNormal
         ) ?: return null
 
-        // Reject hits outside the physically detected plane polygon to avoid
-        // "phantom" points floating past real walls/edges.
         val hitPose = Pose.makeTranslation(hit[0], hit[1], hit[2])
         if (!plane.isPoseInPolygon(hitPose)) return null
 
         return Point3D(hit[0], hit[1], hit[2])
     }
 
-    /** Simpler variant for when you just want to intersect with a known Y-height ground plane
-     *  (e.g. reusing the same plane height recorded during Live mode, without a live Plane object). */
     fun projectTouchToGroundHeight(
         screenX: Float,
         screenY: Float,
@@ -91,10 +65,6 @@ object FrozenFrameProjector {
 
     private data class WorldRay(val origin: FloatArray, val direction: FloatArray)
 
-    /**
-     * Unprojects a screen pixel into a world-space ray using the inverse of the
-     * combined View-Projection matrix, sampling both the near and far clip planes.
-     */
     private fun screenPointToWorldRay(
         screenX: Float,
         screenY: Float,
@@ -103,7 +73,6 @@ object FrozenFrameProjector {
         viewMatrix: FloatArray,
         projectionMatrix: FloatArray
     ): WorldRay? {
-        // Convert pixel coords -> Normalized Device Coordinates (-1..1), flipping Y.
         val ndcX = (2f * screenX / viewportWidth) - 1f
         val ndcY = 1f - (2f * screenY / viewportHeight)
 
@@ -112,7 +81,7 @@ object FrozenFrameProjector {
 
         val invViewProjection = FloatArray(16)
         if (!Matrix.invertM(invViewProjection, 0, viewProjection, 0)) {
-            return null // Non-invertible matrix, camera in a degenerate state.
+            return null
         }
 
         val nearPointClip = floatArrayOf(ndcX, ndcY, -1f, 1f)
@@ -123,7 +92,6 @@ object FrozenFrameProjector {
         Matrix.multiplyMV(nearWorld, 0, invViewProjection, 0, nearPointClip, 0)
         Matrix.multiplyMV(farWorld, 0, invViewProjection, 0, farPointClip, 0)
 
-        // Perspective divide.
         if (nearWorld[3] == 0f || farWorld[3] == 0f) return null
         for (i in 0..2) {
             nearWorld[i] /= nearWorld[3]
@@ -140,7 +108,6 @@ object FrozenFrameProjector {
         return WorldRay(origin, direction)
     }
 
-    /** Standard ray-plane intersection: t = dot(planePoint - rayOrigin, normal) / dot(direction, normal). */
     private fun rayPlaneIntersection(
         rayOrigin: FloatArray,
         rayDirection: FloatArray,
@@ -148,7 +115,7 @@ object FrozenFrameProjector {
         planeNormal: FloatArray
     ): FloatArray? {
         val denom = dot(rayDirection, planeNormal)
-        if (kotlin.math.abs(denom) < 1e-6f) return null // Ray parallel to plane.
+        if (kotlin.math.abs(denom) < 1e-6f) return null
 
         val diff = floatArrayOf(
             planePoint[0] - rayOrigin[0],
@@ -156,7 +123,7 @@ object FrozenFrameProjector {
             planePoint[2] - rayOrigin[2]
         )
         val t = dot(diff, planeNormal) / denom
-        if (t < 0f) return null // Intersection is behind the camera.
+        if (t < 0f) return null
 
         return floatArrayOf(
             rayOrigin[0] + rayDirection[0] * t,
@@ -174,16 +141,13 @@ object FrozenFrameProjector {
         }
     }
 
-    /** Pose extension: local Y axis (plane normal) in world space. */
     private val Pose.yAxis: FloatArray
         get() {
             val q = floatArrayOf(qx(), qy(), qz(), qw())
-            // Rotate the local (0,1,0) up-vector by this pose's rotation quaternion.
             return rotateVectorByQuaternion(floatArrayOf(0f, 1f, 0f), q)
         }
 
     private fun rotateVectorByQuaternion(v: FloatArray, q: FloatArray): FloatArray {
-        // q = (x, y, z, w)
         val qx = q[0]; val qy = q[1]; val qz = q[2]; val qw = q[3]
         val ix = qw * v[0] + qy * v[2] - qz * v[1]
         val iy = qw * v[1] + qz * v[0] - qx * v[2]
@@ -197,3 +161,4 @@ object FrozenFrameProjector {
         )
     }
 }
+أخبرني فور جاهزيتك لننتقل إلى الملف الثالث والأخير في هذه المجموعة.
