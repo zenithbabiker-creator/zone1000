@@ -11,15 +11,7 @@ import android.view.PixelCopy
  * Asynchronously reads the pixels currently displayed within a given
  * on-screen region (in window coordinates) into a [Bitmap]. Used by Step 1
  * to "freeze" the live AR camera feed into a still photo when the user
- * presses Capture.
- *
- * Deliberately takes a plain [Rect] + [Activity] rather than a specific
- * [android.view.View] reference: SceneView's `ARSceneView` (2.x) is a pure
- * Compose function, not an instantiable View subclass, so there is no
- * dedicated View to hold onto. [PixelCopy] only needs the target [Rect] in
- * window coordinates and the hosting [android.view.Window] — both of which
- * are stable Android platform APIs unaffected by any third-party library
- * version change.
+ * presses Capture[cite: 7].
  */
 object PixelCopyHelper {
 
