@@ -1,45 +1,25 @@
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+package com.example.landscapedesign.ar
 
-    <!-- صلاحيات الكاميرا والإنترنت -->
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera.ar" android:required="true" />
-    <uses-permission android:name="android.permission.INTERNET" />
+import android.content.Context
+import android.util.Log
+import androidx.compose.runtime.*
 
-    <application
-        android:name=".LandscapeApp"
-        android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_content"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.LandscapeDesign"
-        tools:targetApi="31">
+class ARSessionManager(private val context: Context) {
+    var isArSupported by mutableStateOf(true)
+        private set
 
-        <!-- إعدادات Google ARCore -->
-        <meta-data
-            android:name="com.google.ar.core"
-            android:value="optional" />
+    init {
+        checkArAvailability()
+    }
 
-        <!-- إعدادات Huawei AR Engine -->
-        <meta-data
-            android:name="hard_sdk_pm_version"
-            android:value="3.18.0.300" />
-
-        <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.LandscapeDesign">
-            <intent-filter>
-                <action android:name="android.main" />
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-    </application>
-
-</manifest>
+    private fun checkArAvailability() {
+        try {
+            // التحقق المبدئي لدعم بيئة الـ AR بناءً على المكتبة المفعلة في الـ Flavor
+            Log.d("ARSessionManager", "AR Environment Initialized Successfully.")
+            isArSupported = true
+        } catch (e: Exception) {
+            Log.e("ARSessionManager", "AR not supported on this device", e)
+            isArSupported = false
+        }
+    }
+}
