@@ -178,4 +178,3 @@ fun BorderConfigRow(
         }
     }
 }
-```[cite: 10]
