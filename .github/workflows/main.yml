@@ -42,9 +42,13 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean assembleDebug --no-build-cache --stacktrace
 
-      # تم تحديث اسم الـ Artifact ليعبر عن النسخة التجريبية
+      # [إضافة إضافية آمنة]: خطوة لطباعة وتتبع مسار الملف الناتج للتأكد منه قبل الرفع
+      - name: Locate APK File
+        run: find app/build/outputs/apk/ -name "*.apk"
+
+      # تم تحديث اسم الـ Artifact ليعبر عن النسخة التجريبية مع تحديد المسار بدقة لتجنب أي فقدان
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
-          path: '**/build/outputs/apk/**/*.apk'
+          path: LandscapeDesignApp/LandscapeDesignApp/app/build/outputs/apk/debug/app-debug.apk
