@@ -71,4 +71,3 @@ dependencies {
     // Debug
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
-```[cite: 5]
