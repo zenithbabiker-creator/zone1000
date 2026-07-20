@@ -9,22 +9,10 @@ import kotlin.math.sin
 
 /**
  * Handles subtractive area math for Step 4: cutting border-strip areas and
- * major-tree-hedge "no lawn" zones out of the base garden polygon.
- *
- * Approach:
- * 1. Approximate every Circle/Arc shape as an N-sided polygon (for accurate area
- *    and, if needed, visual clipping against the base polygon).
- * 2. Sum enclosed areas of all tree zones (Circle/Arc/Polygon hedge rings).
- * 3. Sum border-strip footprint areas (net length x thickness).
- * 4. Net Lawn Area = Base Area - SUM(tree zone areas) - SUM(border footprint areas),
- *    clamped to zero. Overlapping zones are assumed non-overlapping by design
- *    convention (hedge rings are placed apart); if visual overlap detection is
- *    required later, a full Sutherland-Hodgman boolean union can be layered on
- *    top of approximatedPolygon() below.
+ * major-tree-hedge "no lawn" zones out of the base garden polygon[cite: 8].
  */
 object PolygonClipper {
 
-    /** Turns a Circle or Arc into a polygon approximation (for area/visual clip use). */
     fun approximatePolygon(shape: ShapeElement, segments: Int = 32): List<Point3D> {
         if (shape.type == ShapeType.POLYGON) return shape.polygonVertices
         val center = shape.centerWorld ?: return emptyList()
@@ -41,27 +29,20 @@ object PolygonClipper {
             val z = center.z + radius * sin(angleRad).toFloat()
             points.add(Point3D(x, center.y, z))
         }
-        // For an arc, close the fan back to the center so the enclosed area is a pie slice.
         if (shape.type == ShapeType.ARC) {
             points.add(center)
         }
         return points
     }
 
-    /** Total area (m²) occupied by "no-lawn" tree zones (hedge rings, circles, arcs, polygons). */
     fun totalTreeZoneArea(shapes: List<ShapeElement>): Float {
         return shapes.sumOf { it.enclosedAreaMeters2().toDouble() }.toFloat()
     }
 
-    /** Total footprint area (m²) occupied by the 3-tier borders. */
     fun totalBorderFootprintArea(borders: List<BorderElement>): Float {
         return borders.sumOf { it.footprintAreaMeters2().toDouble() }.toFloat()
     }
 
-    /**
-     * Computes the Net Lawn Area following the strict hierarchy:
-     * Base Area - (Border Footprint Areas + Tree Zone Areas), clamped at 0.
-     */
     fun netLawnArea(
         baseAreaMeters2: Float,
         borders: List<BorderElement>,
@@ -73,13 +54,6 @@ object PolygonClipper {
         return net.coerceAtLeast(0f)
     }
 
-    /**
-     * Simple Sutherland-Hodgman clip: clips subjectPolygon against a CONVEX
-     * clipPolygon, returning the intersection polygon. Provided for future
-     * visual "cut-out" rendering of tree zones directly on the base garden
-     * polygon outline (base garden polygons captured in Step 1 are typically
-     * convex-ish user-drawn boundaries).
-     */
     fun clipPolygon(subject: List<Point3D>, clip: List<Point3D>): List<Point3D> {
         if (subject.isEmpty() || clip.isEmpty()) return emptyList()
         var output = subject
@@ -132,3 +106,4 @@ object PolygonClipper {
         }
     }
 }
+```[cite: 8]
