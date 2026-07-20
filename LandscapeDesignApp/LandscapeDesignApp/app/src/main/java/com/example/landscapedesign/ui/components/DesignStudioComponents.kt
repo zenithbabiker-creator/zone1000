@@ -29,7 +29,7 @@ import com.example.landscapedesign.R
 import com.example.landscapedesign.model.BorderElement
 
 /**
- * Dialog for entering a precise numeric radius (in meters).
+ * Dialog for entering a precise numeric radius (in meters).[cite: 10]
  */
 @Composable
 fun RadiusInputDialog(
@@ -65,7 +65,7 @@ fun RadiusInputDialog(
 }
 
 /**
- * Dialog for entering "trees per meter" density.
+ * Dialog for entering "trees per meter" density.[cite: 10]
  */
 @Composable
 fun TreesPerMeterDialog(
@@ -106,7 +106,7 @@ fun TreesPerMeterDialog(
 }
 
 /**
- * One row of the 3-Tier Border configuration UI.
+ * One row of the 3-Tier Border configuration UI.[cite: 10]
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -178,3 +178,4 @@ fun BorderConfigRow(
         }
     }
 }
+```[cite: 10]
