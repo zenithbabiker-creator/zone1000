@@ -11,7 +11,6 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        // إضافة مستودع هواوي الأساسي لجلب الحزم
         maven { url = uri("https://developer.huawei.com/repo/") }
     }
 }
