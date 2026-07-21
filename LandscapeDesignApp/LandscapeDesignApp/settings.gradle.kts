@@ -11,9 +11,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-maven {
-    url = uri("https://developer.huawei.com/repo/")
-}    }
+        // إضافة مستودع هواوي الأساسي لجلب الحزم
+        maven { url = uri("https://developer.huawei.com/repo/") }
+    }
 }
 
 rootProject.name = "LandscapeDesignApp"
