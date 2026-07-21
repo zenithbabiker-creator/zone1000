@@ -1,25 +1,29 @@
-package com.example.landscapedesign.ar
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-import android.content.Context
-import android.util.Log
-import androidx.compose.runtime.*
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera.ar" android:required="false" />
 
-class ARSessionManager(private val context: Context) {
-    var isArSupported by mutableStateOf(true)
-        private set
+    <application
+        android:name=".LandscapeApp"
+        android:allowBackup="true"
+        android:icon="@android:drawable/sym_def_app_icon"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.LandscapeDesign">
 
-    init {
-        checkArAvailability()
-    }
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.LandscapeDesign">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
-    private fun checkArAvailability() {
-        try {
-            // التحقق المبدئي لدعم بيئة الـ AR بناءً على المكتبة المفعلة في الـ Flavor
-            Log.d("ARSessionManager", "AR Environment Initialized Successfully.")
-            isArSupported = true
-        } catch (e: Exception) {
-            Log.e("ARSessionManager", "AR not supported on this device", e)
-            isArSupported = false
-        }
-    }
-}
+    </application>
+</manifest>
