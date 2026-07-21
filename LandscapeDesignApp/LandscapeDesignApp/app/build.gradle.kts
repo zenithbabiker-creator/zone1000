@@ -45,8 +45,7 @@ android {
 dependencies {
     // ARCore & Huawei AREngine Support
     implementation("com.google.ar:core:1.44.0")
-    implementation("com.huawei.hms:ar-engine:3.7.0.300")
-    // SceneView
+    implementation("com.huawei.hms:arenginesdk:6.11.0.300")    // SceneView
     implementation("io.github.sceneview:arsceneview:2.2.1")
 
     // Jetpack Compose
