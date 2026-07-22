@@ -1,39 +1,5 @@
 package com.example.landscapedesign.model
 
-data class Point3D(
-    val x: Float,
-    val y: Float,
-    val z: Float = 0f
-)
-
-enum class PlantType {
-    ROYAL_PALM,
-    NO_THORN
-}
-
-data class PlantNode(
-    val id: String,
-    val type: PlantType,
-    val position: Point3D
-)
-
-enum class BorderTier {
-    LARGE,
-    MEDIUM,
-    SMALL
-}
-
-data class BorderElement(
-    val tier: BorderTier,
-    val lengthMeters: Float = 0f
-)
-
-data class ShapeElement(
-    val id: String,
-    val name: String,
-    val points: List<Point3D> = emptyList()
-)
-
 /**
  * Single source of truth for the entire design flow (Steps 1 through 5).
  * Immutable data class updated via ViewModel copy() calls so Compose can
@@ -41,6 +7,9 @@ data class ShapeElement(
  * whenever any parameter changes.
  */
 data class DesignLayoutState(
+    // AR Engine selection flag (Google ARCore vs Huawei AR Engine)
+    val activeArEngine: AREngineType = AREngineType.GOOGLE_ARCORE,
+
     // Step 1: base garden boundary + area
     val gardenBoundary: List<Point3D> = emptyList(),
     val gardenAreaM2: Float = 0f,
