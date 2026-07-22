@@ -1,6 +1,6 @@
 package com.example.landscapedesign.report
 
-import com.example.landscapedesign.model.DesignLayoutState
+import com.example.landscapedesign.model.DesignLayoutstate
 import java.util.Locale
 
 fun Float.round2(): Float {
@@ -24,7 +24,6 @@ class ReportGenerator(private val state: DesignLayoutState) {
         }
 
     fun nearestTwoEdgeDistances(): List<Float> {
-        // Safe implementation returning calculated edge metrics
         if (state.gardenBoundary.size < 2) return listOf(0f, 0f)
         return listOf(1.5f, 2.0f)
     }
