@@ -29,6 +29,3 @@ class AnchorManager {
         return arSession?.createAnchor(pose)
     }
 }
-```[cite: 1]
-
-أخبرني فور جاهزيتك لننتقل إلى الملف الثاني.
