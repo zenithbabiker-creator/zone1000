@@ -1,6 +1,6 @@
 package com.example.landscapedesign.report
 
-import com.example.landscapedesign.model.DesignLayoutstate
+import com.example.landscapedesign.model.DesignLayoutState
 import java.util.Locale
 
 fun Float.round2(): Float {
