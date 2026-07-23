@@ -5,6 +5,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.landscapedesign.report.ReportGenerator
 import com.example.landscapedesign.viewmodel.LandscapeViewModel
 
 @Composable
@@ -14,6 +15,8 @@ fun Step5ReportScreen(
     onFinish: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+    val reportGenerator = Remember { ReportGenerator(state) }
+    val generatedReportText = reportGenerator.generatedReportText
     
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text(text = "الخطوة ٥: التقرير النهائي", style = MaterialTheme.typography.headlineMedium)
@@ -30,7 +33,7 @@ fun Step5ReportScreen(
                 Text(text = "• إجمالي النخيل والنباتات: ${state.plants.size} نبتة")
                 Text(text = "• إجمالي شتلات النجيلة: ${state.totalLawnPlants} شتلة")
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(text = state.generatedReportText, style = MaterialTheme.typography.bodyMedium)
+                Text(text = generatedReportText, style = MaterialTheme.typography.bodyMedium)
             }
         }
 
