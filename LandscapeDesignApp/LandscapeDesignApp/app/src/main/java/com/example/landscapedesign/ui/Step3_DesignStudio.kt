@@ -8,7 +8,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.landscapedesign.model.Plant
 import com.example.landscapedesign.viewmodel.LandscapeViewModel
+
+/**
+ * دمج متكامل لخطة التصميم (Plan) داخل شاشة استوديو التصميم (Step 3)
+ */
+data class DesignPlan(
+    val planId: String,
+    val title: String,
+    val defaultPlants: List<Plant>
+)
 
 @Composable
 fun Step3DesignStudioScreen(
@@ -18,8 +28,17 @@ fun Step3DesignStudioScreen(
 ) {
     val state by viewModel.state.collectAsState()
     
+    // نموذج الخطة المدمج داخل استوديو التصميم
+    val currentPlan = remember {
+        DesignPlan(
+            planId = "PLAN-001",
+            title = "مخطط الحديقة الرئيسي",
+            defaultPlants = state.plants
+        )
+    }
+    
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(text = "الخطوة ٣: استوديو التصميم", style = MaterialTheme.typography.headlineSmall)
+        Text(text = "الخطوة ٣: استوديو التصميم - ${currentPlan.title}", style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(16.dp))
         
         Row(
