@@ -15,7 +15,7 @@ fun Step5ReportScreen(
     onFinish: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
-    val reportGenerator = Remember { ReportGenerator(state) }
+    val reportGenerator = remember { ReportGenerator(state) }
     val generatedReportText = reportGenerator.generatedReportText
     
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
